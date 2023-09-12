@@ -1,66 +1,91 @@
-#include "bsp_led.h"
+#include "bsp_key.h"
 
-#define RCU_LED1        RCU_GPIOE
-#define PORT_LED1        GPIOE
-#define PIN_LED1        GPIO_PIN_3
+#define RCU_KEY1 RCU_GPIOE
+#define PORT_KEY1 GPIOE
+#define PIN_KEY1 GPIO_PIN_5
 
-// PD7
-#define RCU_LED2        RCU_GPIOD
-#define PORT_LED2        GPIOD
-#define PIN_LED2        GPIO_PIN_7
+#define RCU_KEY2 RCU_GPIOE
+#define PORT_KEY2 GPIOE
+#define PIN_KEY2 GPIO_PIN_6
 
-/*
- * LED GPIO 初始化
- * */
-void bsp_led_gpio_init()
+#define KEY1_EXTI EXTI_5
+#define PIN_KEY1_EXTI EXTI_SOURCE_PIN5
+
+#define KEY2_EXTI EXTI_6
+#define PIN_KEY2_EXTI EXTI_SOURCE_PIN6
+
+void bsp_key_gpio_init()
 {
-        /* PE3 */
-        rcu_periph_clock_enable(RCU_LED1);
-        // 配置GPIO 输入输出模式
-        gpio_mode_set(PORT_LED1, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, PIN_LED1);
-        gpio_output_options_set(PORT_LED1, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, PIN_LED1);
+	/* KEY1 */
+	rcu_periph_clock_enable(RCU_KEY1);
+	gpio_mode_set(PORT_KEY1, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, PIN_KEY1);
+	// 时钟配置
+	rcu_periph_clock_enable(RCU_SYSCFG);
+	// 配置中断源
+	syscfg_exti_line_config(EXTI_SOURCE_GPIOE, PIN_KEY1_EXTI);
+	// 中断初始化
+	exti_init(KEY1_EXTI, EXTI_INTERRUPT, EXTI_TRIG_BOTH);
+	// 配置中断优先级
+	nvic_irq_enable(EXTI5_9_IRQn, 1, 1);
+	// 使能中断
+	exti_interrupt_enable(KEY1_EXTI);
+	// 清除中断标志位
+	exti_interrupt_flag_clear(KEY1_EXTI);
 
-        /* PD7 */
-        rcu_periph_clock_enable(RCU_LED2);
-        gpio_mode_set(PORT_LED2, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, PIN_LED2);
-        gpio_output_options_set(PORT_LED2, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, PIN_LED2);
+	/* KEY2 */
+	rcu_periph_clock_enable(RCU_KEY2);
+	gpio_mode_set(PORT_KEY2, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, PIN_KEY2);
+	// 时钟配置
+	rcu_periph_clock_enable(RCU_SYSCFG);
+	// 配置中断源
+	syscfg_exti_line_config(EXTI_SOURCE_GPIOE, PIN_KEY2_EXTI);
+	// 中断初始化
+	exti_init(KEY2_EXTI, EXTI_INTERRUPT, EXTI_TRIG_BOTH);
+	// 配置中断优先级
+	nvic_irq_enable(EXTI5_9_IRQn, 1, 1);
+	// 使能中断
+	exti_interrupt_enable(KEY2_EXTI);
+	// 清除中断标志位
+	exti_interrupt_flag_clear(KEY2_EXTI);
 }
 
-/**
- * LED 初始化
- */
-void bsp_led_init()
+void bsp_key_init()
 {
-        bsp_led_gpio_init();
+	bsp_key_gpio_init();
 }
 
-void bsp_led_set(uint8_t led, uint8_t value)
+/* 中断函数 */
+void EXTI5_9_IRQHandler(void)
 {
-        switch (led) {
-        case 1:
-                gpio_bit_write(PORT_LED1, PIN_LED1, value);
-                break;
-        case 2:
-                gpio_bit_write(PORT_LED2, PIN_LED2, value);
-                break;
-        default:
-                printf("led error:%d\r\n", led);
-        }
-}
-
-void bsp_led_test()
-{
-        bsp_led_init();
-
-	while (1)  {
-		bsp_led_set(2, SET);        // LED1 ON
-		delay_1ms(100);
-		bsp_led_set(2, RESET);      // LED1 OFF
-		delay_1ms(100);
-
-		bsp_led_set(1, SET);        // LED1 ON
-		delay_1ms(100);
-		bsp_led_set(1, RESET);      // LED1 OFF
-		delay_1ms(100);
+	// 判断中断中断触发
+	if(SET == exti_interrupt_flag_get(KEY1_EXTI)) {
+		if(gpio_input_bit_get(PORT_KEY1, PIN_KEY1) == RESET) {
+			bsp_key_callback(1, SET);
+		} else {
+			bsp_key_callback(1, RESET);
+		}
 	}
+	// 清除中断标志位
+	exti_interrupt_flag_clear(KEY1_EXTI);
+
+	if(SET == exti_interrupt_flag_get(KEY2_EXTI)) {
+		if(gpio_input_bit_get(PORT_KEY2, PIN_KEY2) == RESET) {
+			bsp_key_callback(2, SET);
+		} else {
+			bsp_key_callback(2, RESET);
+		}
+	}
+	exti_interrupt_flag_clear(KEY2_EXTI);
+}
+
+
+void bsp_key_callback(uint8_t key, uint8_t value)
+{
+	printf("key = %d, value = %d\n", key, value);
+}
+
+void bsp_key_test()
+{
+	bsp_key_init();
+	while (1) {}
 }

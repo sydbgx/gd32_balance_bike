@@ -8,7 +8,7 @@
 #include "bsp_battery.h"
 #include "bsp_motor.h"
 #include "bsp_encoder.h"
-
+#include "bsp_key.h"
 
 int main(void)
 {
@@ -30,8 +30,11 @@ int main(void)
 	/*printf("motor test\n");
 	bsp_motor_test();*/
 
-	printf("encoder test\n");
-	bsp_encoder_test();
+	/*printf("encoder test\n");
+	bsp_encoder_test();*/
+
+	printf("key test\n");
+	bsp_key_test();
 
         while (1) {
 		printf("未执行的循环\n");

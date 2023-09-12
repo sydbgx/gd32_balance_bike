@@ -58,6 +58,7 @@ include_directories(
         Hardware/battery
         Hardware/motor
         Hardware/encoder
+        Hardware/key
         User
         )
 
@@ -77,6 +78,7 @@ file(GLOB_RECURSE SOURCES
         "Hardware/battery/*.c"
         "Hardware/motor/*.c"
         "Hardware/encoder/*.c"
+        "Hardware/key/*.c"
         "User/*.*"
         )
 # 可修改结束
