@@ -1,4 +1,4 @@
-在 CLion 中开发并烧录代码到 gd32f4xx 芯片中
+基于GD32F4xx实现二轮平衡车
 
 目录说明：
 - config：配置文件，用于配置编译选项
@@ -9,10 +9,13 @@
 - user：用户程序目录
 - startup：汇编文件目录，用于编译汇编文件
 
-在编译之前需要配置好编译和构建选项的工具，下面列出配置一个即可:
-- MinGW
-- Visual Studio
-- WSL2
+开发环境：
+- CLion 2023.2.1
+- gcc-arm-none-eabi\10.3-2-21.10
+    在编译之前需要配置好编译和构建选项的工具，下面列出配置一个即可:
+    - MinGW
+    - Visual Studio
+    - WSL2
 
 配置编译选项步骤：
 - Edit Configurations -> Add New Configuration -> OpenOCD Download & Run
@@ -20,7 +23,6 @@
     - Name: CMakeLists.txt 中
     -------------------------------------------
     |# project settings                       |
-    |project(gd32_template_clion C CXX ASM)   |
+    |project(gd32_balance_bike C CXX ASM)   |
     -------------------------------------------
     - Board config file: 选择 项目目录下的 config 文件夹下的 link.cfg 文件
-gd32_balance_bike
