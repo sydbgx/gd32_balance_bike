@@ -46,7 +46,7 @@ else ()
     add_compile_options(-Og -g)
 endif ()
 
-#             可修改
+# 可修改
 include_directories(
         Firmware/CMSIS
         Firmware/CMSIS/GD/GD32F4xx/Include
@@ -59,6 +59,9 @@ include_directories(
         Hardware/motor
         Hardware/encoder
         Hardware/key
+        Hardware/data_show
+        Hardware/protocol
+        Hardware/dma_rcv
         User
         )
 
@@ -79,6 +82,9 @@ file(GLOB_RECURSE SOURCES
         "Hardware/motor/*.c"
         "Hardware/encoder/*.c"
         "Hardware/key/*.c"
+        "Hardware/data_show/*.c"
+        "Hardware/protocol/*.c"
+        "Hardware/dma_rcv/*.c"
         "User/*.*"
         )
 # 可修改结束

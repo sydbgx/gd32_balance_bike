@@ -10,6 +10,8 @@
 #include "bsp_encoder.h"
 #include "bsp_key.h"
 
+#include "data_show.h"
+
 int main(void)
 {
         systick_config();
@@ -33,10 +35,12 @@ int main(void)
 	/*printf("encoder test\n");
 	bsp_encoder_test();*/
 
-	printf("key test\n");
-	bsp_key_test();
+	/*printf("key test\n");
+	bsp_key_test();*/
 
         while (1) {
-		printf("未执行的循环\n");
+                float i = rand() % 100;
+                data_show_push(&i, 1);
+                delay_1ms(50);
         }
 }
