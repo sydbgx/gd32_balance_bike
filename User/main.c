@@ -18,8 +18,15 @@ extern float g_balanceKP, g_balanceKI, g_balanceKD, g_velocityKP, g_velocityKI, 
 void test(int left, int right)
 {
         while (1) {
-                left = left > 9999 ? 9999 : (left < -9999 ? -9999 : left);
-                right = right > 9999 ? 9999 : (right < -9999 ? -9999 : right);
+		if (left > 9999)
+			left = 9999;
+		if (left < -9999)
+			left = -9999;
+		if (right > 9999)
+			right = 9999;
+		if (right < -9999)
+			right = -9999;
+
                 printf("left:%d\n", left);
                 printf("right:%d\n", right);
         }
