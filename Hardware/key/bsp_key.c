@@ -78,10 +78,14 @@ void EXTI5_9_IRQHandler(void)
 	exti_interrupt_flag_clear(KEY2_EXTI);
 }
 
-
+/* 按下按键触发任务 */
 void bsp_key_callback(uint8_t key, uint8_t value)
 {
-	printf("key = %d, value = %d\n", key, value);
+        // 按下按键1清空编码器
+        if (key == 1) {
+                timer_counter_value_config(TIMER1, 0);
+                timer_counter_value_config(TIMER2, 0);
+        }
 }
 
 void bsp_key_test()

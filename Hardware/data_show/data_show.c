@@ -32,7 +32,7 @@ void data_show_on_config_pid(unsigned char chn, unsigned char id, float kp, floa
 }
 
 
-/* 数据转换：不同平台可能存在大小端问题
+/** 数据转换：不同平台可能存在大小端问题
    当前是大端，修改顺序即可改为小端
    当前是大端，修改顺序即可改为小端 */
 typedef union {
@@ -64,9 +64,7 @@ void data_show_init() {
 
 void data_show_push(float *chns, int chn_cnt) {
 	// 帧头(1字节) | 命令(1字节) | 数据长度(1字节) | 数据(n字节) | 校验码(1字节) | 帧尾(1字节)
-	// 命令: 请求类型的标识
-	// 数据长度: 表示后面 数据 的字节个数
-	// 校验码:  命令 + 数据长度 + 数据, 取高位
+	// 命令: 请求类型的标识，数据长度: 表示后面 数据 的字节个数，校验码:  命令 + 数据长度 + 数据, 取高位
 	unsigned char i;
 	float chn;
 	unsigned char tmp[4];
@@ -115,7 +113,7 @@ static void on_cmd() {
 void data_show_parse() {
 	unsigned char dat_len, i;
 	unsigned short sum = 0;
-	//////////////// check cmd
+	// check cmd
 	if(buf_len < 3) return;
 
 	// 消息组成

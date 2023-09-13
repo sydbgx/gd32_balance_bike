@@ -76,11 +76,14 @@ void protocol_parse_rx_pid(uint8_t *rxbuf, int16_t datalength, uint8_t *pidtype,
         }
         printf("count=%d %x %x\n", datalength, rxbuf[0], rxbuf[16]);
 
-        if (rxbuf[0] != RX_FRAME_HEADER) return;
+        if (rxbuf[0] != RX_FRAME_HEADER)
+                return;
 
-        if (rxbuf[1] != 0x01) return;
+        if (rxbuf[1] != 0x01)
+                return;
 
-        if (rxbuf[17] != RX_FRAME_TAIL) return;
+        if (rxbuf[17] != RX_FRAME_TAIL)
+                return;
 
         // pid的类型
         *pidtype = rxbuf[3];
@@ -135,8 +138,8 @@ void protocol_parse_rx(uint8_t *buff, int16_t datalength)
     short 是2个字节，范围-32768~32767
 
     接收pid数据
-  帧头  标志位 长度 直立环kp  ki  kd  速度环kp  ki	kd 校验位1 帧尾
-  0x7d   0x01  29     4     4   4       4     4   4   1     0x7b
+    帧头  标志位 长度 直立环kp  ki  kd  速度环kp  ki	kd 校验位1 帧尾
+    0x7d   0x01  29     4     4   4       4     4   4   1     0x7b
 */
         static uint8_t rxbuf[11] = {0};
         static uint16_t count = 0;

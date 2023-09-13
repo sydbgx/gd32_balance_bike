@@ -12,6 +12,11 @@ uint8_t g1_recv_complete_flag = 0;                // 接收数据完成标志位
 //usart配置
 void bsp_usart_dma_init(uint32_t band_rate)
 {
+        /**
+         * 缓冲区为 0，一有数据就发送
+         */
+        setvbuf(stdout, NULL, _IONBF, 0);
+
         //1.开启时钟
         rcu_periph_clock_enable(BSP_USART_TX_RCU); // 端口时钟
         rcu_periph_clock_enable(BSP_USART_RX_RCU); // 端口时钟
@@ -107,17 +112,13 @@ void BSP_DMA_CH_IRQ_HANDLER(void)
 void BSP_USART_DMA_IRQHandler(void)
 {
         // 检测到帧中断
-        // 检测到帧中断
-        if (usart_interrupt_flag_get(BSP_USART,
-                                     USART_INT_FLAG_IDLE) == SET)
-        {
+        if (usart_interrupt_flag_get(BSP_USART, USART_INT_FLAG_IDLE) == SET) {
                 // 必须要读，读出来的值不能要
                 usart_data_receive(BSP_USART);                                                                                                                                                                                                                                          // 必须要读，读出来的值不能要
 
                 /* 处理DMA接收到的数据 */
                 // 计算实际接收的数据长度
-                g1_recv_length = USART_RECEIVE_LENGTH -
-                        dma_transfer_number_get(BSP_DMA, BSP_DMA_CHANNEL);
+                g1_recv_length = USART_RECEIVE_LENGTH - dma_transfer_number_get(BSP_DMA, BSP_DMA_CHANNEL);
                 //g1_recv_buff[g1_recv_length] = '\0';																											 // 数据接收完毕，数组结束标志
 
                 uint8_t pid_type = 0;
@@ -159,25 +160,23 @@ void BSP_USART_DMA_IRQHandler(void)
                 bsp_dma_config();
 
         }
-        if (usart_interrupt_flag_get(BSP_USART, USART_INT_FLAG_RBNE) == SET) {
+        if (usart_interrupt_flag_get(BSP_USART, USART_INT_FLAG_RBNE) == SET)
                 dma_interrupt_flag_clear(BSP_DMA, BSP_DMA_CHANNEL, USART_INT_FLAG_RBNE);
-        }
-        if (usart_interrupt_flag_get(BSP_USART, USART_INT_FLAG_RBNE_ORERR) == SET) {
+        if (usart_interrupt_flag_get(BSP_USART, USART_INT_FLAG_RBNE_ORERR) == SET)
                 dma_interrupt_flag_clear(BSP_DMA, BSP_DMA_CHANNEL, USART_INT_FLAG_RBNE_ORERR);
-        }
 }
 
 //发送一个字符
 void bsp_usart_dma_send_data(uint8_t ucch)
 {
-        usart_data_transmit(BSP_USART, (uint8_t) ucch);                                                         // 发送数据
+        usart_data_transmit(BSP_USART, (uint8_t) ucch);              // 发送数据
         while (RESET == usart_flag_get(BSP_USART, USART_FLAG_TBE));  // 等待发送数据缓冲区标志置位
 }
 //发送字符串
 void bsp_usart_dma_send_string(uint8_t *ucstr)
 {
-        while (ucstr && *ucstr) {                        // 地址为空或者值为空跳出
-                bsp_usart_dma_send_data(*ucstr++);  // 发送单个字符
+        while (ucstr && *ucstr) {                             // 地址为空或者值为空跳出
+                bsp_usart_dma_send_data(*ucstr++);      // 发送单个字符
         }
 }
 

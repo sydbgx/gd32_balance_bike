@@ -107,6 +107,9 @@ void bsp_motor_init(void)
 
 void bsp_motor_set(int left, int right)
 {
+        left = left > 9999 ? 9999 : (left < -9999 ? -9999 : left);
+        right = right > 9999 ? 9999 : (right < -9999 ? -9999 : right);
+
 	if (left > 0) {
 		timer_channel_output_pulse_value_config(PORT_MOTOR_TIMER, TIMER_CH_0, left);
 		timer_channel_output_pulse_value_config(PORT_MOTOR_TIMER, TIMER_CH_1, 0);

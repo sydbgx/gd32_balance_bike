@@ -61,7 +61,6 @@ include_directories(
         Hardware/key
         Hardware/data_show
         Hardware/protocol
-        Hardware/dma_rcv
         User
         )
 
@@ -84,7 +83,6 @@ file(GLOB_RECURSE SOURCES
         "Hardware/key/*.c"
         "Hardware/data_show/*.c"
         "Hardware/protocol/*.c"
-        "Hardware/dma_rcv/*.c"
         "User/*.*"
         )
 # 可修改结束
