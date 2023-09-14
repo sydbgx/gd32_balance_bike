@@ -6,7 +6,7 @@
 
 #define ADC_RCU_BATTERY  RCU_ADC0
 #define ADC_PORT_BATTERY ADC0
-#define CHANNEL_BATTERY        ADC_CHANNEL_9
+#define CHANNEL_BATTERY  ADC_CHANNEL_9
 
 void bsp_battery_gpio_init(void)
 {
