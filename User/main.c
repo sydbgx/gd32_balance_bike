@@ -150,25 +150,28 @@ void incremental_pid_control_test()
         float error_last = 0;
         float error_last_last = 0;
         while (1) {
-                float kp = 100;
+                float kp = g_balanceKP;
                 float ki = g_balanceKI;
                 float kd = g_balanceKD;
                 // 编码器当前值
                 int current = bsp_encoder_get_left();
                 // 误差计算
                 float error = target - current;
-                /* 增量式PID 公式 */
-                pwm = kp * (error - error_last) + ki * error
-                        + kd * ((error - error_last) - (error_last - error_last_last));
 
+                /**增量式PID 公式
+                 * pwm += kp * (本次误差 - 上次误差) + ki * 本次误差 + kd * ((本次误差 - 上次误差) - (上次误差 - 上上次误差))
+                 */
+                pwm += kp * (error - error_last) + ki * error + kd * ((error - error_last) - (error_last - error_last_last));
                 // 更新参数
-                bsp_motor_set(pwm, 0);
                 error_last_last = error_last;
                 error_last = error;
+
+                bsp_motor_set(pwm, 0);
+
                 // 显示当前编码器的读数
-                float cure_enc = current;
-                data_show_push(&cure_enc, 1);
-                //delay_1ms(5);
+                float curr_encoder = current;
+                data_show_push(&curr_encoder, 1);
+                delay_1ms(5);
         }
 }
 
