@@ -18,15 +18,8 @@ extern float g_balanceKP, g_balanceKI, g_balanceKD, g_velocityKP, g_velocityKI, 
 void test(int left, int right)
 {
         while (1) {
-                if (left > 9999)
-                        left = 9999;
-                if (left < -9999)
-                        left = -9999;
-                if (right > 9999)
-                        right = 9999;
-                if (right < -9999)
-                        right = -9999;
-
+                left = left > 9999 ? 9999 : (left < -9999 ? -9999 : left);
+                right = right > 9999 ? 9999 : (right < -9999 ? -9999 : right);
                 printf("left:%d\n", left);
                 printf("right:%d\n", right);
         }
@@ -175,6 +168,63 @@ void incremental_pid_control_test()
         }
 }
 
+// 串级PID
+void tandem_pid_control_test()
+{
+
+        int target = 350;
+        float error_sum = 0;
+        float error_last = 0;
+        float encoder_last = 0;
+
+        float error_speed_sum = 0;
+        float error_speed_last = 0;
+        while (1) {
+                float kp1 = g_balanceKP;
+                float ki1 = g_balanceKI;
+                float kd1 = g_balanceKD;
+
+                float kp2 = g_velocityKP;
+                float ki2 = g_velocityKI;
+                float kd2 = g_velocityKD;
+
+                // 获取当前编码值
+                int current = bsp_encoder_get_left();
+                // 位置环PID: kp * 本次误差 + ki * 累计误差 + kd * 误差变化
+                float error = target - current;
+                float location_pid = kp1 * error + ki1 * error_sum + kd1 * (error - error_last);
+                error_last = error;
+                error_sum += error;
+
+                /** 限定输出
+                 * 300转/分钟，每一转有1400个信号
+                 *  300 * 1400 / (60 * 1000) 转/毫秒
+                 *  42 / 6 = 7 转/毫秒
+                 *  延时 5毫秒， pwm = 7 * 5 = 35
+                 */
+                location_pid = location_pid > 50 ? 50 : (location_pid < -50 ? -50 : location_pid);
+
+                float speed = current - encoder_last;
+                encoder_last = current;
+                // 计算误差，位置环的输出是速度环的输入
+                float error_speed = location_pid - speed;
+                // 速度环PID: kp * 本次误差 + ki * 累计误差 + kd * 误差变化
+                float speed_pid = kp2 * error_speed + ki2 * error_speed_sum + kd2 * (error_speed - error_speed_last);
+                error_speed_last = error_speed;
+                error_speed_sum += error_speed;
+
+                bsp_motor_set(speed_pid, 0);
+
+                // 显示当前编码器的读数
+                float curr_encoder = current;
+                data_show_push(&curr_encoder, 1);
+                delay_1ms(5);
+        }
+
+
+}
+
+
 int main(void)
 {
         nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
@@ -214,5 +264,6 @@ int main(void)
         //pd_control_test();
         //pid_control_test();
 
-        incremental_pid_control_test();
+        //incremental_pid_control_test();
+        tandem_pid_control_test();
 }
