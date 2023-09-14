@@ -18,14 +18,14 @@ extern float g_balanceKP, g_balanceKI, g_balanceKD, g_velocityKP, g_velocityKI, 
 void test(int left, int right)
 {
         while (1) {
-		if (left > 9999)
-			left = 9999;
-		if (left < -9999)
-			left = -9999;
-		if (right > 9999)
-			right = 9999;
-		if (right < -9999)
-			right = -9999;
+                if (left > 9999)
+                        left = 9999;
+                if (left < -9999)
+                        left = -9999;
+                if (right > 9999)
+                        right = 9999;
+                if (right < -9999)
+                        right = -9999;
 
                 printf("left:%d\n", left);
                 printf("right:%d\n", right);
@@ -96,7 +96,7 @@ void pd_control_test()
                 // 误差计算
                 float error = target - current;
                 /* PID 公式 */
-                int pwm = kp * error + kd * (error -error_last);
+                int pwm = kp * error + kd * (error - error_last);
                 // 记录上一次的误差值
                 error_last = error;
 
@@ -126,7 +126,7 @@ void pid_control_test()
                 // 误差计算
                 float error = target - current;
                 /* PID 公式 */
-                int pwm = kp * error + ki * error_sum + kd * (error -error_last);
+                int pwm = kp * error + ki * error_sum + kd * (error - error_last);
                 // pwm 控制电机
                 bsp_motor_set(pwm, 0);
                 error_sum += error;
@@ -138,6 +138,40 @@ void pid_control_test()
         }
 }
 
+// 增量式PID
+void incremental_pid_control_test()
+{
+        // 目标：90°转动
+        int target = 350;
+        int pwm = 0;
+        // 累计误差
+        float error_sum = 0;
+        // 微分：误差变化的速率， 记录上一次的误差值
+        float error_last = 0;
+        float error_last_last = 0;
+        while (1) {
+                float kp = 100;
+                float ki = g_balanceKI;
+                float kd = g_balanceKD;
+                // 编码器当前值
+                int current = bsp_encoder_get_left();
+                // 误差计算
+                float error = target - current;
+                /* 增量式PID 公式 */
+                pwm = kp * (error - error_last) + ki * error
+                        + kd * ((error - error_last) - (error_last - error_last_last));
+
+                // 更新参数
+                bsp_motor_set(pwm, 0);
+                error_last_last = error_last;
+                error_last = error;
+                // 显示当前编码器的读数
+                float cure_enc = current;
+                data_show_push(&cure_enc, 1);
+                //delay_1ms(5);
+        }
+}
+
 int main(void)
 {
         nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
@@ -146,25 +180,25 @@ int main(void)
         bsp_usart_dma_init(115200);
 
         //printf("led test\n");
-	//bsp_led_test();
+        //bsp_led_test();
 
-	//printf("timer test\n");
-	//bsp_timer_test();
+        //printf("timer test\n");
+        //bsp_timer_test();
 
-	/*printf("ultrasonic test\n");
-	bsp_ultrasonic_test();*/
+        /*printf("ultrasonic test\n");
+        bsp_ultrasonic_test();*/
 
-	/*printf("battery test\n");
-	bsp_battery_test();*/
+        //printf("battery 1\n");
+        //bsp_battery_test();
 
-	/*printf("motor test\n");
-	bsp_motor_test();*/
+        /*printf("motor test\n");
+        bsp_motor_test();*/
 
-	/*printf("encoder test\n");
-	bsp_encoder_test();*/
+        /*printf("encoder test\n");
+        bsp_encoder_test();*/
 
-	/*printf("key test\n");
-	bsp_key_test();*/
+        /*printf("key test\n");
+        bsp_key_test();*/
 
         //test(10000, 10000);
 
@@ -175,5 +209,7 @@ int main(void)
         //kp_control_test();
         //pi_control_test();
         //pd_control_test();
-        pid_control_test();
+        //pid_control_test();
+
+        incremental_pid_control_test();
 }
