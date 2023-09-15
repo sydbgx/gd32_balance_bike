@@ -53,9 +53,9 @@ OF SUCH DAMAGE.
 */
 void ctc_deinit(void)
 {
-    /* reset CTC */
-    rcu_periph_reset_enable(RCU_CTCRST);
-    rcu_periph_reset_disable(RCU_CTCRST);
+        /* reset CTC */
+        rcu_periph_reset_enable(RCU_CTCRST);
+        rcu_periph_reset_disable(RCU_CTCRST);
 }
 
 /*!
@@ -66,7 +66,7 @@ void ctc_deinit(void)
 */
 void ctc_counter_enable(void)
 {
-    CTC_CTL0 |= (uint32_t)CTC_CTL0_CNTEN;
+        CTC_CTL0 |= (uint32_t) CTC_CTL0_CNTEN;
 }
 
 /*!
@@ -77,7 +77,7 @@ void ctc_counter_enable(void)
 */
 void ctc_counter_disable(void)
 {
-    CTC_CTL0 &= (uint32_t)(~CTC_CTL0_CNTEN);
+        CTC_CTL0 &= (uint32_t) (~CTC_CTL0_CNTEN);
 }
 
 /*!
@@ -89,10 +89,10 @@ void ctc_counter_disable(void)
 */
 void ctc_irc48m_trim_value_config(uint8_t trim_value)
 {
-    /* clear TRIMVALUE bits */
-    CTC_CTL0 &= (~(uint32_t)CTC_CTL0_TRIMVALUE);
-    /* set TRIMVALUE bits */
-    CTC_CTL0 |= ((uint32_t)trim_value << CTC_TRIM_VALUE_OFFSET);
+        /* clear TRIMVALUE bits */
+        CTC_CTL0 &= (~(uint32_t) CTC_CTL0_TRIMVALUE);
+        /* set TRIMVALUE bits */
+        CTC_CTL0 |= ((uint32_t) trim_value << CTC_TRIM_VALUE_OFFSET);
 }
 
 /*!
@@ -103,7 +103,7 @@ void ctc_irc48m_trim_value_config(uint8_t trim_value)
 */
 void ctc_software_refsource_pulse_generate(void)
 {
-    CTC_CTL0 |= (uint32_t)CTC_CTL0_SWREFPUL;
+        CTC_CTL0 |= (uint32_t) CTC_CTL0_SWREFPUL;
 }
 
 /*!
@@ -117,8 +117,8 @@ void ctc_software_refsource_pulse_generate(void)
 */
 void ctc_hardware_trim_mode_config(uint32_t hardmode)
 {
-    CTC_CTL0 &= (uint32_t)(~CTC_CTL0_AUTOTRIM);
-    CTC_CTL0 |= (uint32_t)hardmode;
+        CTC_CTL0 &= (uint32_t) (~CTC_CTL0_AUTOTRIM);
+        CTC_CTL0 |= (uint32_t) hardmode;
 }
 
 /*!
@@ -132,8 +132,8 @@ void ctc_hardware_trim_mode_config(uint32_t hardmode)
 */
 void ctc_refsource_polarity_config(uint32_t polarity)
 {
-    CTC_CTL1 &= (uint32_t)(~CTC_CTL1_REFPOL);
-    CTC_CTL1 |= (uint32_t)polarity;
+        CTC_CTL1 &= (uint32_t) (~CTC_CTL1_REFPOL);
+        CTC_CTL1 |= (uint32_t) polarity;
 }
 
 /*!
@@ -147,8 +147,8 @@ void ctc_refsource_polarity_config(uint32_t polarity)
 */
 void ctc_refsource_signal_select(uint32_t refs)
 {
-    CTC_CTL1 &= (uint32_t)(~CTC_CTL1_REFSEL);
-    CTC_CTL1 |= (uint32_t)refs;
+        CTC_CTL1 &= (uint32_t) (~CTC_CTL1_REFSEL);
+        CTC_CTL1 |= (uint32_t) refs;
 }
 
 /*!
@@ -168,8 +168,8 @@ void ctc_refsource_signal_select(uint32_t refs)
 */
 void ctc_refsource_prescaler_config(uint32_t prescaler)
 {
-    CTC_CTL1 &= (uint32_t)(~CTC_CTL1_REFPSC);
-    CTC_CTL1 |= (uint32_t)prescaler;
+        CTC_CTL1 &= (uint32_t) (~CTC_CTL1_REFPSC);
+        CTC_CTL1 |= (uint32_t) prescaler;
 }
 
 /*!
@@ -181,8 +181,8 @@ void ctc_refsource_prescaler_config(uint32_t prescaler)
 */
 void ctc_clock_limit_value_config(uint8_t limit_value)
 {
-    CTC_CTL1 &= (uint32_t)(~CTC_CTL1_CKLIM);
-    CTC_CTL1 |= (uint32_t)((uint32_t)limit_value << CTC_LIMIT_VALUE_OFFSET);
+        CTC_CTL1 &= (uint32_t) (~CTC_CTL1_CKLIM);
+        CTC_CTL1 |= (uint32_t) ((uint32_t) limit_value << CTC_LIMIT_VALUE_OFFSET);
 }
 
 /*!
@@ -194,8 +194,8 @@ void ctc_clock_limit_value_config(uint8_t limit_value)
 */
 void ctc_counter_reload_value_config(uint16_t reload_value)
 {
-    CTC_CTL1 &= (uint32_t)(~CTC_CTL1_RLVALUE);
-    CTC_CTL1 |= (uint32_t)reload_value;
+        CTC_CTL1 &= (uint32_t) (~CTC_CTL1_RLVALUE);
+        CTC_CTL1 |= (uint32_t) reload_value;
 }
 
 /*!
@@ -206,9 +206,9 @@ void ctc_counter_reload_value_config(uint16_t reload_value)
 */
 uint16_t ctc_counter_capture_value_read(void)
 {
-    uint16_t capture_value = 0U;
-    capture_value = (uint16_t)((CTC_STAT & CTC_STAT_REFCAP) >> CTC_REFCAP_OFFSET);
-    return (capture_value);
+        uint16_t capture_value = 0U;
+        capture_value = (uint16_t) ((CTC_STAT & CTC_STAT_REFCAP) >> CTC_REFCAP_OFFSET);
+        return (capture_value);
 }
 
 /*!
@@ -221,11 +221,11 @@ uint16_t ctc_counter_capture_value_read(void)
 */
 FlagStatus ctc_counter_direction_read(void)
 {
-    if(RESET != (CTC_STAT & CTC_STAT_REFDIR)) {
-        return SET;
-    } else {
-        return RESET;
-    }
+        if (RESET != (CTC_STAT & CTC_STAT_REFDIR)) {
+                return SET;
+        } else {
+                return RESET;
+        }
 }
 
 /*!
@@ -236,9 +236,9 @@ FlagStatus ctc_counter_direction_read(void)
 */
 uint16_t ctc_counter_reload_value_read(void)
 {
-    uint16_t reload_value = 0U;
-    reload_value = (uint16_t)(CTC_CTL1 & CTC_CTL1_RLVALUE);
-    return (reload_value);
+        uint16_t reload_value = 0U;
+        reload_value = (uint16_t) (CTC_CTL1 & CTC_CTL1_RLVALUE);
+        return (reload_value);
 }
 
 /*!
@@ -249,9 +249,9 @@ uint16_t ctc_counter_reload_value_read(void)
 */
 uint8_t ctc_irc48m_trim_value_read(void)
 {
-    uint8_t trim_value = 0U;
-    trim_value = (uint8_t)((CTC_CTL0 & CTC_CTL0_TRIMVALUE) >> CTC_TRIMVALUE_OFFSET);
-    return (trim_value);
+        uint8_t trim_value = 0U;
+        trim_value = (uint8_t) ((CTC_CTL0 & CTC_CTL0_TRIMVALUE) >> CTC_TRIMVALUE_OFFSET);
+        return (trim_value);
 }
 
 /*!
@@ -267,7 +267,7 @@ uint8_t ctc_irc48m_trim_value_read(void)
 */
 void ctc_interrupt_enable(uint32_t interrupt)
 {
-    CTC_CTL0 |= (uint32_t)interrupt;
+        CTC_CTL0 |= (uint32_t) interrupt;
 }
 
 /*!
@@ -283,7 +283,7 @@ void ctc_interrupt_enable(uint32_t interrupt)
 */
 void ctc_interrupt_disable(uint32_t interrupt)
 {
-    CTC_CTL0 &= (uint32_t)(~interrupt);
+        CTC_CTL0 &= (uint32_t) (~interrupt);
 }
 
 /*!
@@ -302,23 +302,23 @@ void ctc_interrupt_disable(uint32_t interrupt)
 */
 FlagStatus ctc_interrupt_flag_get(uint32_t int_flag)
 {
-    uint32_t interrupt_flag = 0U, intenable = 0U;
+        uint32_t interrupt_flag = 0U, intenable = 0U;
 
-    /* check whether the interrupt is enabled */
-    if(RESET != (int_flag & CTC_FLAG_MASK)) {
-        intenable = CTC_CTL0 & CTC_CTL0_ERRIE;
-    } else {
-        intenable = CTC_CTL0 & int_flag;
-    }
+        /* check whether the interrupt is enabled */
+        if (RESET != (int_flag & CTC_FLAG_MASK)) {
+                intenable = CTC_CTL0 & CTC_CTL0_ERRIE;
+        } else {
+                intenable = CTC_CTL0 & int_flag;
+        }
 
-    /* get interrupt flag status */
-    interrupt_flag = CTC_STAT & int_flag;
+        /* get interrupt flag status */
+        interrupt_flag = CTC_STAT & int_flag;
 
-    if(interrupt_flag && intenable) {
-        return SET;
-    } else {
-        return RESET;
-    }
+        if (interrupt_flag && intenable) {
+                return SET;
+        } else {
+                return RESET;
+        }
 }
 
 /*!
@@ -337,11 +337,11 @@ FlagStatus ctc_interrupt_flag_get(uint32_t int_flag)
 */
 void ctc_interrupt_flag_clear(uint32_t int_flag)
 {
-    if(RESET != (int_flag & CTC_FLAG_MASK)) {
-        CTC_INTC |= CTC_INTC_ERRIC;
-    } else {
-        CTC_INTC |= int_flag;
-    }
+        if (RESET != (int_flag & CTC_FLAG_MASK)) {
+                CTC_INTC |= CTC_INTC_ERRIC;
+        } else {
+                CTC_INTC |= int_flag;
+        }
 }
 
 /*!
@@ -360,11 +360,11 @@ void ctc_interrupt_flag_clear(uint32_t int_flag)
 */
 FlagStatus ctc_flag_get(uint32_t flag)
 {
-    if(RESET != (CTC_STAT & flag)) {
-        return SET;
-    } else {
-        return RESET;
-    }
+        if (RESET != (CTC_STAT & flag)) {
+                return SET;
+        } else {
+                return RESET;
+        }
 }
 
 /*!
@@ -383,9 +383,9 @@ FlagStatus ctc_flag_get(uint32_t flag)
 */
 void ctc_flag_clear(uint32_t flag)
 {
-    if(RESET != (flag & CTC_FLAG_MASK)) {
-        CTC_INTC |= CTC_INTC_ERRIC;
-    } else {
-        CTC_INTC |= flag;
-    }
+        if (RESET != (flag & CTC_FLAG_MASK)) {
+                CTC_INTC |= CTC_INTC_ERRIC;
+        } else {
+                CTC_INTC |= flag;
+        }
 }

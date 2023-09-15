@@ -57,35 +57,40 @@ uint8_t rx_buff[ENET_RXBUF_NUM][ENET_RXBUF_SIZE];           /*!< ENET receive bu
 uint8_t tx_buff[ENET_TXBUF_NUM][ENET_TXBUF_SIZE];           /*!< ENET transmit buffer */
 
 #elif defined (__GNUC__)        /* GNU Compiler */
-enet_descriptors_struct  rxdesc_tab[ENET_RXBUF_NUM] __attribute__((aligned(4)));          /*!< ENET RxDMA descriptor */
-enet_descriptors_struct  txdesc_tab[ENET_TXBUF_NUM] __attribute__((aligned(4)));          /*!< ENET TxDMA descriptor */
+
+enet_descriptors_struct rxdesc_tab[ENET_RXBUF_NUM] __attribute__((aligned(4)));          /*!< ENET RxDMA descriptor */
+enet_descriptors_struct txdesc_tab[ENET_TXBUF_NUM] __attribute__((aligned(4)));          /*!< ENET TxDMA descriptor */
 uint8_t rx_buff[ENET_RXBUF_NUM][ENET_RXBUF_SIZE] __attribute__((aligned(4)));             /*!< ENET receive buffer */
 uint8_t tx_buff[ENET_TXBUF_NUM][ENET_TXBUF_SIZE] __attribute__((aligned(4)));             /*!< ENET transmit buffer */
 
 #endif /* __CC_ARM */
 
 /* global transmit and receive descriptors pointers */
-enet_descriptors_struct  *dma_current_txdesc;
-enet_descriptors_struct  *dma_current_rxdesc;
+enet_descriptors_struct *dma_current_txdesc;
+
+enet_descriptors_struct *dma_current_rxdesc;
 
 /* structure pointer of ptp descriptor for normal mode */
-enet_descriptors_struct  *dma_current_ptp_txdesc = NULL;
-enet_descriptors_struct  *dma_current_ptp_rxdesc = NULL;
+enet_descriptors_struct *dma_current_ptp_txdesc = NULL;
+
+enet_descriptors_struct *dma_current_ptp_rxdesc = NULL;
 
 /* init structure parameters for ENET initialization */
 static enet_initpara_struct enet_initpara = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
 static uint32_t enet_unknow_err = 0U;
+
 /* array of register offset for debug information get */
 static const uint16_t enet_reg_tab[] = {
-    0x0000, 0x0004, 0x0008, 0x000C, 0x0010, 0x0014, 0x0018, 0x001C, 0x0028, 0x002C, 0x0034,
-    0x0038, 0x003C, 0x0040, 0x0044, 0x0048, 0x004C, 0x0050, 0x0054, 0x0058, 0x005C, 0x1080,
+        0x0000, 0x0004, 0x0008, 0x000C, 0x0010, 0x0014, 0x0018, 0x001C, 0x0028, 0x002C, 0x0034,
+        0x0038, 0x003C, 0x0040, 0x0044, 0x0048, 0x004C, 0x0050, 0x0054, 0x0058, 0x005C, 0x1080,
 
-    0x0100, 0x0104, 0x0108, 0x010C, 0x0110, 0x014C, 0x0150, 0x0168, 0x0194, 0x0198, 0x01C4,
+        0x0100, 0x0104, 0x0108, 0x010C, 0x0110, 0x014C, 0x0150, 0x0168, 0x0194, 0x0198, 0x01C4,
 
-    0x0700, 0x0704, 0x0708, 0x070C, 0x0710, 0x0714, 0x0718, 0x071C, 0x0720, 0x0728, 0x072C,
+        0x0700, 0x0704, 0x0708, 0x070C, 0x0710, 0x0714, 0x0718, 0x071C, 0x0720, 0x0728, 0x072C,
 
-    0x1000, 0x1004, 0x1008, 0x100C, 0x1010, 0x1014, 0x1018, 0x101C, 0x1020, 0x1024, 0x1048,
-    0x104C, 0x1050, 0x1054
+        0x1000, 0x1004, 0x1008, 0x100C, 0x1010, 0x1014, 0x1018, 0x101C, 0x1020, 0x1024, 0x1048,
+        0x104C, 0x1050, 0x1054
 };
 
 /* initialize ENET peripheral with generally concerned parameters, call it by enet_init() */
@@ -109,9 +114,9 @@ static void enet_delay(uint32_t ncount);
 */
 void enet_deinit(void)
 {
-    rcu_periph_reset_enable(RCU_ENETRST);
-    rcu_periph_reset_disable(RCU_ENETRST);
-    enet_initpara_reset();
+        rcu_periph_reset_enable(RCU_ENETRST);
+        rcu_periph_reset_disable(RCU_ENETRST);
+        enet_initpara_reset();
 }
 
 /*!
@@ -227,85 +232,85 @@ void enet_deinit(void)
 */
 void enet_initpara_config(enet_option_enum option, uint32_t para)
 {
-    switch(option) {
-    case FORWARD_OPTION:
-        /* choose to configure forward_frame, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)FORWARD_OPTION;
-        enet_initpara.forward_frame = para;
-        break;
-    case DMABUS_OPTION:
-        /* choose to configure dmabus_mode, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)DMABUS_OPTION;
-        enet_initpara.dmabus_mode = para;
-        break;
-    case DMA_MAXBURST_OPTION:
-        /* choose to configure dma_maxburst, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)DMA_MAXBURST_OPTION;
-        enet_initpara.dma_maxburst = para;
-        break;
-    case DMA_ARBITRATION_OPTION:
-        /* choose to configure dma_arbitration, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)DMA_ARBITRATION_OPTION;
-        enet_initpara.dma_arbitration = para;
-        break;
-    case STORE_OPTION:
-        /* choose to configure store_forward_mode, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)STORE_OPTION;
-        enet_initpara.store_forward_mode = para;
-        break;
-    case DMA_OPTION:
-        /* choose to configure dma_function, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)DMA_OPTION;
+        switch (option) {
+        case FORWARD_OPTION:
+                /* choose to configure forward_frame, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) FORWARD_OPTION;
+                enet_initpara.forward_frame = para;
+                break;
+        case DMABUS_OPTION:
+                /* choose to configure dmabus_mode, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) DMABUS_OPTION;
+                enet_initpara.dmabus_mode = para;
+                break;
+        case DMA_MAXBURST_OPTION:
+                /* choose to configure dma_maxburst, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) DMA_MAXBURST_OPTION;
+                enet_initpara.dma_maxburst = para;
+                break;
+        case DMA_ARBITRATION_OPTION:
+                /* choose to configure dma_arbitration, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) DMA_ARBITRATION_OPTION;
+                enet_initpara.dma_arbitration = para;
+                break;
+        case STORE_OPTION:
+                /* choose to configure store_forward_mode, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) STORE_OPTION;
+                enet_initpara.store_forward_mode = para;
+                break;
+        case DMA_OPTION:
+                /* choose to configure dma_function, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) DMA_OPTION;
 
 #ifndef SELECT_DESCRIPTORS_ENHANCED_MODE
-        para &= ~ENET_ENHANCED_DESCRIPTOR;
+                para &= ~ENET_ENHANCED_DESCRIPTOR;
 #endif /* SELECT_DESCRIPTORS_ENHANCED_MODE */
 
-        enet_initpara.dma_function = para;
-        break;
-    case VLAN_OPTION:
-        /* choose to configure vlan_config, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)VLAN_OPTION;
-        enet_initpara.vlan_config = para;
-        break;
-    case FLOWCTL_OPTION:
-        /* choose to configure flow_control, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)FLOWCTL_OPTION;
-        enet_initpara.flow_control = para;
-        break;
-    case HASHH_OPTION:
-        /* choose to configure hashtable_high, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)HASHH_OPTION;
-        enet_initpara.hashtable_high = para;
-        break;
-    case HASHL_OPTION:
-        /* choose to configure hashtable_low, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)HASHL_OPTION;
-        enet_initpara.hashtable_low = para;
-        break;
-    case FILTER_OPTION:
-        /* choose to configure framesfilter_mode, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)FILTER_OPTION;
-        enet_initpara.framesfilter_mode = para;
-        break;
-    case HALFDUPLEX_OPTION:
-        /* choose to configure halfduplex_param, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)HALFDUPLEX_OPTION;
-        enet_initpara.halfduplex_param = para;
-        break;
-    case TIMER_OPTION:
-        /* choose to configure timer_config, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)TIMER_OPTION;
-        enet_initpara.timer_config = para;
-        break;
-    case INTERFRAMEGAP_OPTION:
-        /* choose to configure interframegap, and save the configuration parameters */
-        enet_initpara.option_enable |= (uint32_t)INTERFRAMEGAP_OPTION;
-        enet_initpara.interframegap = para;
-        break;
-    default:
-        break;
-    }
+                enet_initpara.dma_function = para;
+                break;
+        case VLAN_OPTION:
+                /* choose to configure vlan_config, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) VLAN_OPTION;
+                enet_initpara.vlan_config = para;
+                break;
+        case FLOWCTL_OPTION:
+                /* choose to configure flow_control, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) FLOWCTL_OPTION;
+                enet_initpara.flow_control = para;
+                break;
+        case HASHH_OPTION:
+                /* choose to configure hashtable_high, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) HASHH_OPTION;
+                enet_initpara.hashtable_high = para;
+                break;
+        case HASHL_OPTION:
+                /* choose to configure hashtable_low, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) HASHL_OPTION;
+                enet_initpara.hashtable_low = para;
+                break;
+        case FILTER_OPTION:
+                /* choose to configure framesfilter_mode, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) FILTER_OPTION;
+                enet_initpara.framesfilter_mode = para;
+                break;
+        case HALFDUPLEX_OPTION:
+                /* choose to configure halfduplex_param, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) HALFDUPLEX_OPTION;
+                enet_initpara.halfduplex_param = para;
+                break;
+        case TIMER_OPTION:
+                /* choose to configure timer_config, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) TIMER_OPTION;
+                enet_initpara.timer_config = para;
+                break;
+        case INTERFRAMEGAP_OPTION:
+                /* choose to configure interframegap, and save the configuration parameters */
+                enet_initpara.option_enable |= (uint32_t) INTERFRAMEGAP_OPTION;
+                enet_initpara.interframegap = para;
+                break;
+        default:
+                break;
+        }
 }
 
 /*!
@@ -336,288 +341,288 @@ void enet_initpara_config(enet_option_enum option, uint32_t para)
 */
 ErrStatus enet_init(enet_mediamode_enum mediamode, enet_chksumconf_enum checksum, enet_frmrecept_enum recept)
 {
-    uint32_t reg_value = 0U, reg_temp = 0U, temp = 0U;
-    uint32_t media_temp = 0U;
-    uint32_t timeout = 0U;
-    uint16_t phy_value = 0U;
-    ErrStatus phy_state = ERROR, enet_state = ERROR;
+        uint32_t reg_value = 0U, reg_temp = 0U, temp = 0U;
+        uint32_t media_temp = 0U;
+        uint32_t timeout = 0U;
+        uint16_t phy_value = 0U;
+        ErrStatus phy_state = ERROR, enet_state = ERROR;
 
-    /* PHY interface configuration, configure SMI clock and reset PHY chip */
-    if(ERROR == enet_phy_config()) {
-        _ENET_DELAY_(PHY_RESETDELAY);
-        if(ERROR == enet_phy_config()) {
-            return enet_state;
+        /* PHY interface configuration, configure SMI clock and reset PHY chip */
+        if (ERROR == enet_phy_config()) {
+                _ENET_DELAY_(PHY_RESETDELAY);
+                if (ERROR == enet_phy_config()) {
+                        return enet_state;
+                }
         }
-    }
-    /* initialize ENET peripheral with generally concerned parameters */
-    enet_default_init();
+        /* initialize ENET peripheral with generally concerned parameters */
+        enet_default_init();
 
-    /* 1st, configure mediamode */
-    media_temp = (uint32_t)mediamode;
-    /* if is PHY auto negotiation */
-    if((uint32_t)ENET_AUTO_NEGOTIATION == media_temp) {
-        /* wait for PHY_LINKED_STATUS bit be set */
-        do {
-            enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_REG_BSR, &phy_value);
-            phy_value &= PHY_LINKED_STATUS;
-            timeout++;
-        } while((RESET == phy_value) && (timeout < PHY_READ_TO));
-        /* return ERROR due to timeout */
-        if(PHY_READ_TO == timeout) {
-            return enet_state;
-        }
-        /* reset timeout counter */
-        timeout = 0U;
+        /* 1st, configure mediamode */
+        media_temp = (uint32_t) mediamode;
+        /* if is PHY auto negotiation */
+        if ((uint32_t) ENET_AUTO_NEGOTIATION == media_temp) {
+                /* wait for PHY_LINKED_STATUS bit be set */
+                do {
+                        enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_REG_BSR, &phy_value);
+                        phy_value &= PHY_LINKED_STATUS;
+                        timeout++;
+                } while ((RESET == phy_value) && (timeout < PHY_READ_TO));
+                /* return ERROR due to timeout */
+                if (PHY_READ_TO == timeout) {
+                        return enet_state;
+                }
+                /* reset timeout counter */
+                timeout = 0U;
 
-        /* enable auto-negotiation */
-        phy_value = PHY_AUTONEGOTIATION;
-        phy_state = enet_phy_write_read(ENET_PHY_WRITE, PHY_ADDRESS, PHY_REG_BCR, &phy_value);
-        if(!phy_state) {
-            /* return ERROR due to write timeout */
-            return enet_state;
-        }
+                /* enable auto-negotiation */
+                phy_value = PHY_AUTONEGOTIATION;
+                phy_state = enet_phy_write_read(ENET_PHY_WRITE, PHY_ADDRESS, PHY_REG_BCR, &phy_value);
+                if (!phy_state) {
+                        /* return ERROR due to write timeout */
+                        return enet_state;
+                }
 
-        /* wait for the PHY_AUTONEGO_COMPLETE bit be set */
-        do {
-            enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_REG_BSR, &phy_value);
-            phy_value &= PHY_AUTONEGO_COMPLETE;
-            timeout++;
-        } while((RESET == phy_value) && (timeout < (uint32_t)PHY_READ_TO));
-        /* return ERROR due to timeout */
-        if(PHY_READ_TO == timeout) {
-            return enet_state;
-        }
-        /* reset timeout counter */
-        timeout = 0U;
+                /* wait for the PHY_AUTONEGO_COMPLETE bit be set */
+                do {
+                        enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_REG_BSR, &phy_value);
+                        phy_value &= PHY_AUTONEGO_COMPLETE;
+                        timeout++;
+                } while ((RESET == phy_value) && (timeout < (uint32_t) PHY_READ_TO));
+                /* return ERROR due to timeout */
+                if (PHY_READ_TO == timeout) {
+                        return enet_state;
+                }
+                /* reset timeout counter */
+                timeout = 0U;
 
-        /* read the result of the auto-negotiation */
-        enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_SR, &phy_value);
-        /* configure the duplex mode of MAC following the auto-negotiation result */
-        if((uint16_t)RESET != (phy_value & PHY_DUPLEX_STATUS)) {
-            media_temp = ENET_MODE_FULLDUPLEX;
+                /* read the result of the auto-negotiation */
+                enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_SR, &phy_value);
+                /* configure the duplex mode of MAC following the auto-negotiation result */
+                if ((uint16_t) RESET != (phy_value & PHY_DUPLEX_STATUS)) {
+                        media_temp = ENET_MODE_FULLDUPLEX;
+                } else {
+                        media_temp = ENET_MODE_HALFDUPLEX;
+                }
+                /* configure the communication speed of MAC following the auto-negotiation result */
+                if ((uint16_t) RESET != (phy_value & PHY_SPEED_STATUS)) {
+                        media_temp |= ENET_SPEEDMODE_10M;
+                } else {
+                        media_temp |= ENET_SPEEDMODE_100M;
+                }
         } else {
-            media_temp = ENET_MODE_HALFDUPLEX;
+                phy_value = (uint16_t) ((media_temp & ENET_MAC_CFG_DPM) >> 3);
+                phy_value |= (uint16_t) ((media_temp & ENET_MAC_CFG_SPD) >> 1);
+                phy_state = enet_phy_write_read(ENET_PHY_WRITE, PHY_ADDRESS, PHY_REG_BCR, &phy_value);
+                if (!phy_state) {
+                        /* return ERROR due to write timeout */
+                        return enet_state;
+                }
+                /* PHY configuration need some time */
+                _ENET_DELAY_(PHY_CONFIGDELAY);
         }
-        /* configure the communication speed of MAC following the auto-negotiation result */
-        if((uint16_t)RESET != (phy_value & PHY_SPEED_STATUS)) {
-            media_temp |= ENET_SPEEDMODE_10M;
-        } else {
-            media_temp |= ENET_SPEEDMODE_100M;
+        /* after configuring the PHY, use mediamode to configure registers */
+        reg_value = ENET_MAC_CFG;
+        /* configure ENET_MAC_CFG register */
+        reg_value &= (~(ENET_MAC_CFG_SPD | ENET_MAC_CFG_DPM | ENET_MAC_CFG_LBM));
+        reg_value |= media_temp;
+        ENET_MAC_CFG = reg_value;
+
+
+        /* 2st, configure checksum */
+        if (RESET != ((uint32_t) checksum & ENET_CHECKSUMOFFLOAD_ENABLE)) {
+                ENET_MAC_CFG |= ENET_CHECKSUMOFFLOAD_ENABLE;
+
+                reg_value = ENET_DMA_CTL;
+                /* configure ENET_DMA_CTL register */
+                reg_value &= ~ENET_DMA_CTL_DTCERFD;
+                reg_value |= ((uint32_t) checksum & ENET_DMA_CTL_DTCERFD);
+                ENET_DMA_CTL = reg_value;
         }
-    } else {
-        phy_value = (uint16_t)((media_temp & ENET_MAC_CFG_DPM) >> 3);
-        phy_value |= (uint16_t)((media_temp & ENET_MAC_CFG_SPD) >> 1);
-        phy_state = enet_phy_write_read(ENET_PHY_WRITE, PHY_ADDRESS, PHY_REG_BCR, &phy_value);
-        if(!phy_state) {
-            /* return ERROR due to write timeout */
-            return enet_state;
+
+        /* 3rd, configure recept */
+        ENET_MAC_FRMF |= (uint32_t) recept;
+
+        /* 4th, configure different function options */
+        /* configure forward_frame related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) FORWARD_OPTION)) {
+                reg_temp = enet_initpara.forward_frame;
+
+                reg_value = ENET_MAC_CFG;
+                temp = reg_temp;
+                /* configure ENET_MAC_CFG register */
+                reg_value &= (~(ENET_MAC_CFG_TFCD | ENET_MAC_CFG_APCD));
+                temp &= (ENET_MAC_CFG_TFCD | ENET_MAC_CFG_APCD);
+                reg_value |= temp;
+                ENET_MAC_CFG = reg_value;
+
+                reg_value = ENET_DMA_CTL;
+                temp = reg_temp;
+                /* configure ENET_DMA_CTL register */
+                reg_value &= (~(ENET_DMA_CTL_FERF | ENET_DMA_CTL_FUF));
+                temp &= ((ENET_DMA_CTL_FERF | ENET_DMA_CTL_FUF) << 2);
+                reg_value |= (temp >> 2);
+                ENET_DMA_CTL = reg_value;
         }
-        /* PHY configuration need some time */
-        _ENET_DELAY_(PHY_CONFIGDELAY);
-    }
-    /* after configuring the PHY, use mediamode to configure registers */
-    reg_value = ENET_MAC_CFG;
-    /* configure ENET_MAC_CFG register */
-    reg_value &= (~(ENET_MAC_CFG_SPD | ENET_MAC_CFG_DPM | ENET_MAC_CFG_LBM));
-    reg_value |= media_temp;
-    ENET_MAC_CFG = reg_value;
 
+        /* configure dmabus_mode related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) DMABUS_OPTION)) {
+                temp = enet_initpara.dmabus_mode;
 
-    /* 2st, configure checksum */
-    if(RESET != ((uint32_t)checksum & ENET_CHECKSUMOFFLOAD_ENABLE)) {
-        ENET_MAC_CFG |= ENET_CHECKSUMOFFLOAD_ENABLE;
+                reg_value = ENET_DMA_BCTL;
+                /* configure ENET_DMA_BCTL register */
+                reg_value &= ~(ENET_DMA_BCTL_AA | ENET_DMA_BCTL_FB \
+ | ENET_DMA_BCTL_FPBL | ENET_DMA_BCTL_MB);
+                reg_value |= temp;
+                ENET_DMA_BCTL = reg_value;
+        }
 
-        reg_value = ENET_DMA_CTL;
-        /* configure ENET_DMA_CTL register */
-        reg_value &= ~ENET_DMA_CTL_DTCERFD;
-        reg_value |= ((uint32_t)checksum & ENET_DMA_CTL_DTCERFD);
-        ENET_DMA_CTL = reg_value;
-    }
+        /* configure dma_maxburst related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) DMA_MAXBURST_OPTION)) {
+                temp = enet_initpara.dma_maxburst;
 
-    /* 3rd, configure recept */
-    ENET_MAC_FRMF |= (uint32_t)recept;
+                reg_value = ENET_DMA_BCTL;
+                /* configure ENET_DMA_BCTL register */
+                reg_value &= ~(ENET_DMA_BCTL_RXDP | ENET_DMA_BCTL_PGBL | ENET_DMA_BCTL_UIP);
+                reg_value |= temp;
+                ENET_DMA_BCTL = reg_value;
+        }
 
-    /* 4th, configure different function options */
-    /* configure forward_frame related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)FORWARD_OPTION)) {
-        reg_temp = enet_initpara.forward_frame;
+        /* configure dma_arbitration related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) DMA_ARBITRATION_OPTION)) {
+                temp = enet_initpara.dma_arbitration;
 
-        reg_value = ENET_MAC_CFG;
-        temp = reg_temp;
-        /* configure ENET_MAC_CFG register */
-        reg_value &= (~(ENET_MAC_CFG_TFCD | ENET_MAC_CFG_APCD));
-        temp &= (ENET_MAC_CFG_TFCD | ENET_MAC_CFG_APCD);
-        reg_value |= temp;
-        ENET_MAC_CFG = reg_value;
+                reg_value = ENET_DMA_BCTL;
+                /* configure ENET_DMA_BCTL register */
+                reg_value &= ~(ENET_DMA_BCTL_RTPR | ENET_DMA_BCTL_DAB);
+                reg_value |= temp;
+                ENET_DMA_BCTL = reg_value;
+        }
 
-        reg_value = ENET_DMA_CTL;
-        temp = reg_temp;
-        /* configure ENET_DMA_CTL register */
-        reg_value &= (~(ENET_DMA_CTL_FERF | ENET_DMA_CTL_FUF));
-        temp &= ((ENET_DMA_CTL_FERF | ENET_DMA_CTL_FUF) << 2);
-        reg_value |= (temp >> 2);
-        ENET_DMA_CTL = reg_value;
-    }
+        /* configure store_forward_mode related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) STORE_OPTION)) {
+                temp = enet_initpara.store_forward_mode;
 
-    /* configure dmabus_mode related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)DMABUS_OPTION)) {
-        temp = enet_initpara.dmabus_mode;
+                reg_value = ENET_DMA_CTL;
+                /* configure ENET_DMA_CTL register */
+                reg_value &= ~(ENET_DMA_CTL_RSFD | ENET_DMA_CTL_TSFD | ENET_DMA_CTL_RTHC | ENET_DMA_CTL_TTHC);
+                reg_value |= temp;
+                ENET_DMA_CTL = reg_value;
+        }
 
-        reg_value = ENET_DMA_BCTL;
-        /* configure ENET_DMA_BCTL register */
-        reg_value &= ~(ENET_DMA_BCTL_AA | ENET_DMA_BCTL_FB \
-                       | ENET_DMA_BCTL_FPBL | ENET_DMA_BCTL_MB);
-        reg_value |= temp;
-        ENET_DMA_BCTL = reg_value;
-    }
+        /* configure dma_function related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) DMA_OPTION)) {
+                reg_temp = enet_initpara.dma_function;
 
-    /* configure dma_maxburst related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)DMA_MAXBURST_OPTION)) {
-        temp = enet_initpara.dma_maxburst;
+                reg_value = ENET_DMA_CTL;
+                temp = reg_temp;
+                /* configure ENET_DMA_CTL register */
+                reg_value &= (~(ENET_DMA_CTL_DAFRF | ENET_DMA_CTL_OSF));
+                temp &= (ENET_DMA_CTL_DAFRF | ENET_DMA_CTL_OSF);
+                reg_value |= temp;
+                ENET_DMA_CTL = reg_value;
 
-        reg_value = ENET_DMA_BCTL;
-        /* configure ENET_DMA_BCTL register */
-        reg_value &= ~(ENET_DMA_BCTL_RXDP | ENET_DMA_BCTL_PGBL | ENET_DMA_BCTL_UIP);
-        reg_value |= temp;
-        ENET_DMA_BCTL = reg_value;
-    }
+                reg_value = ENET_DMA_BCTL;
+                temp = reg_temp;
+                /* configure ENET_DMA_BCTL register */
+                reg_value &= (~ENET_DMA_BCTL_DFM);
+                temp &= ENET_DMA_BCTL_DFM;
+                reg_value |= temp;
+                ENET_DMA_BCTL = reg_value;
+        }
 
-    /* configure dma_arbitration related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)DMA_ARBITRATION_OPTION)) {
-        temp = enet_initpara.dma_arbitration;
+        /* configure vlan_config related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) VLAN_OPTION)) {
+                reg_temp = enet_initpara.vlan_config;
 
-        reg_value = ENET_DMA_BCTL;
-        /* configure ENET_DMA_BCTL register */
-        reg_value &= ~(ENET_DMA_BCTL_RTPR | ENET_DMA_BCTL_DAB);
-        reg_value |= temp;
-        ENET_DMA_BCTL = reg_value;
-    }
+                reg_value = ENET_MAC_VLT;
+                /* configure ENET_MAC_VLT register */
+                reg_value &= ~(ENET_MAC_VLT_VLTI | ENET_MAC_VLT_VLTC);
+                reg_value |= reg_temp;
+                ENET_MAC_VLT = reg_value;
+        }
 
-    /* configure store_forward_mode related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)STORE_OPTION)) {
-        temp = enet_initpara.store_forward_mode;
+        /* configure flow_control related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) FLOWCTL_OPTION)) {
+                reg_temp = enet_initpara.flow_control;
 
-        reg_value = ENET_DMA_CTL;
-        /* configure ENET_DMA_CTL register */
-        reg_value &= ~(ENET_DMA_CTL_RSFD | ENET_DMA_CTL_TSFD | ENET_DMA_CTL_RTHC | ENET_DMA_CTL_TTHC);
-        reg_value |= temp;
-        ENET_DMA_CTL = reg_value;
-    }
+                reg_value = ENET_MAC_FCTL;
+                temp = reg_temp;
+                /* configure ENET_MAC_FCTL register */
+                reg_value &= ~(ENET_MAC_FCTL_PTM | ENET_MAC_FCTL_DZQP | ENET_MAC_FCTL_PLTS \
+ | ENET_MAC_FCTL_UPFDT | ENET_MAC_FCTL_RFCEN | ENET_MAC_FCTL_TFCEN);
+                temp &= (ENET_MAC_FCTL_PTM | ENET_MAC_FCTL_DZQP | ENET_MAC_FCTL_PLTS \
+ | ENET_MAC_FCTL_UPFDT | ENET_MAC_FCTL_RFCEN | ENET_MAC_FCTL_TFCEN);
+                reg_value |= temp;
+                ENET_MAC_FCTL = reg_value;
 
-    /* configure dma_function related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)DMA_OPTION)) {
-        reg_temp = enet_initpara.dma_function;
+                reg_value = ENET_MAC_FCTH;
+                temp = reg_temp;
+                /* configure ENET_MAC_FCTH register */
+                reg_value &= ~(ENET_MAC_FCTH_RFA | ENET_MAC_FCTH_RFD);
+                temp &= ((ENET_MAC_FCTH_RFA | ENET_MAC_FCTH_RFD) << 8);
+                reg_value |= (temp >> 8);
+                ENET_MAC_FCTH = reg_value;
+        }
 
-        reg_value = ENET_DMA_CTL;
-        temp = reg_temp;
-        /* configure ENET_DMA_CTL register */
-        reg_value &= (~(ENET_DMA_CTL_DAFRF | ENET_DMA_CTL_OSF));
-        temp &= (ENET_DMA_CTL_DAFRF | ENET_DMA_CTL_OSF);
-        reg_value |= temp;
-        ENET_DMA_CTL = reg_value;
+        /* configure hashtable_high related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) HASHH_OPTION)) {
+                ENET_MAC_HLH = enet_initpara.hashtable_high;
+        }
 
-        reg_value = ENET_DMA_BCTL;
-        temp = reg_temp;
-        /* configure ENET_DMA_BCTL register */
-        reg_value &= (~ENET_DMA_BCTL_DFM);
-        temp &= ENET_DMA_BCTL_DFM;
-        reg_value |= temp;
-        ENET_DMA_BCTL = reg_value;
-    }
+        /* configure hashtable_low related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) HASHL_OPTION)) {
+                ENET_MAC_HLL = enet_initpara.hashtable_low;
+        }
 
-    /* configure vlan_config related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)VLAN_OPTION)) {
-        reg_temp = enet_initpara.vlan_config;
+        /* configure framesfilter_mode related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) FILTER_OPTION)) {
+                reg_temp = enet_initpara.framesfilter_mode;
 
-        reg_value = ENET_MAC_VLT;
-        /* configure ENET_MAC_VLT register */
-        reg_value &= ~(ENET_MAC_VLT_VLTI | ENET_MAC_VLT_VLTC);
-        reg_value |= reg_temp;
-        ENET_MAC_VLT = reg_value;
-    }
+                reg_value = ENET_MAC_FRMF;
+                /* configure ENET_MAC_FRMF register */
+                reg_value &= ~(ENET_MAC_FRMF_SAFLT | ENET_MAC_FRMF_SAIFLT | ENET_MAC_FRMF_DAIFLT \
+ | ENET_MAC_FRMF_HMF | ENET_MAC_FRMF_HPFLT | ENET_MAC_FRMF_MFD \
+ | ENET_MAC_FRMF_HUF | ENET_MAC_FRMF_PCFRM);
+                reg_value |= reg_temp;
+                ENET_MAC_FRMF = reg_value;
+        }
 
-    /* configure flow_control related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)FLOWCTL_OPTION)) {
-        reg_temp = enet_initpara.flow_control;
+        /* configure halfduplex_param related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) HALFDUPLEX_OPTION)) {
+                reg_temp = enet_initpara.halfduplex_param;
 
-        reg_value = ENET_MAC_FCTL;
-        temp = reg_temp;
-        /* configure ENET_MAC_FCTL register */
-        reg_value &= ~(ENET_MAC_FCTL_PTM | ENET_MAC_FCTL_DZQP | ENET_MAC_FCTL_PLTS \
-                       | ENET_MAC_FCTL_UPFDT | ENET_MAC_FCTL_RFCEN | ENET_MAC_FCTL_TFCEN);
-        temp &= (ENET_MAC_FCTL_PTM | ENET_MAC_FCTL_DZQP | ENET_MAC_FCTL_PLTS \
-                 | ENET_MAC_FCTL_UPFDT | ENET_MAC_FCTL_RFCEN | ENET_MAC_FCTL_TFCEN);
-        reg_value |= temp;
-        ENET_MAC_FCTL = reg_value;
+                reg_value = ENET_MAC_CFG;
+                /* configure ENET_MAC_CFG register */
+                reg_value &= ~(ENET_MAC_CFG_CSD | ENET_MAC_CFG_ROD | ENET_MAC_CFG_RTD \
+ | ENET_MAC_CFG_BOL | ENET_MAC_CFG_DFC);
+                reg_value |= reg_temp;
+                ENET_MAC_CFG = reg_value;
+        }
 
-        reg_value = ENET_MAC_FCTH;
-        temp = reg_temp;
-        /* configure ENET_MAC_FCTH register */
-        reg_value &= ~(ENET_MAC_FCTH_RFA | ENET_MAC_FCTH_RFD);
-        temp &= ((ENET_MAC_FCTH_RFA | ENET_MAC_FCTH_RFD) << 8);
-        reg_value |= (temp >> 8);
-        ENET_MAC_FCTH = reg_value;
-    }
+        /* configure timer_config related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) TIMER_OPTION)) {
+                reg_temp = enet_initpara.timer_config;
 
-    /* configure hashtable_high related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)HASHH_OPTION)) {
-        ENET_MAC_HLH = enet_initpara.hashtable_high;
-    }
+                reg_value = ENET_MAC_CFG;
+                /* configure ENET_MAC_CFG register */
+                reg_value &= ~(ENET_MAC_CFG_WDD | ENET_MAC_CFG_JBD);
+                reg_value |= reg_temp;
+                ENET_MAC_CFG = reg_value;
+        }
 
-    /* configure hashtable_low related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)HASHL_OPTION)) {
-        ENET_MAC_HLL = enet_initpara.hashtable_low;
-    }
+        /* configure interframegap related registers */
+        if (RESET != (enet_initpara.option_enable & (uint32_t) INTERFRAMEGAP_OPTION)) {
+                reg_temp = enet_initpara.interframegap;
 
-    /* configure framesfilter_mode related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)FILTER_OPTION)) {
-        reg_temp = enet_initpara.framesfilter_mode;
+                reg_value = ENET_MAC_CFG;
+                /* configure ENET_MAC_CFG register */
+                reg_value &= ~ENET_MAC_CFG_IGBS;
+                reg_value |= reg_temp;
+                ENET_MAC_CFG = reg_value;
+        }
 
-        reg_value = ENET_MAC_FRMF;
-        /* configure ENET_MAC_FRMF register */
-        reg_value &= ~(ENET_MAC_FRMF_SAFLT | ENET_MAC_FRMF_SAIFLT | ENET_MAC_FRMF_DAIFLT \
-                       | ENET_MAC_FRMF_HMF | ENET_MAC_FRMF_HPFLT | ENET_MAC_FRMF_MFD \
-                       | ENET_MAC_FRMF_HUF | ENET_MAC_FRMF_PCFRM);
-        reg_value |= reg_temp;
-        ENET_MAC_FRMF = reg_value;
-    }
-
-    /* configure halfduplex_param related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)HALFDUPLEX_OPTION)) {
-        reg_temp = enet_initpara.halfduplex_param;
-
-        reg_value = ENET_MAC_CFG;
-        /* configure ENET_MAC_CFG register */
-        reg_value &= ~(ENET_MAC_CFG_CSD | ENET_MAC_CFG_ROD | ENET_MAC_CFG_RTD \
-                       | ENET_MAC_CFG_BOL | ENET_MAC_CFG_DFC);
-        reg_value |= reg_temp;
-        ENET_MAC_CFG = reg_value;
-    }
-
-    /* configure timer_config related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)TIMER_OPTION)) {
-        reg_temp = enet_initpara.timer_config;
-
-        reg_value = ENET_MAC_CFG;
-        /* configure ENET_MAC_CFG register */
-        reg_value &= ~(ENET_MAC_CFG_WDD | ENET_MAC_CFG_JBD);
-        reg_value |= reg_temp;
-        ENET_MAC_CFG = reg_value;
-    }
-
-    /* configure interframegap related registers */
-    if(RESET != (enet_initpara.option_enable & (uint32_t)INTERFRAMEGAP_OPTION)) {
-        reg_temp = enet_initpara.interframegap;
-
-        reg_value = ENET_MAC_CFG;
-        /* configure ENET_MAC_CFG register */
-        reg_value &= ~ENET_MAC_CFG_IGBS;
-        reg_value |= reg_temp;
-        ENET_MAC_CFG = reg_value;
-    }
-
-    enet_state = SUCCESS;
-    return enet_state;
+        enet_state = SUCCESS;
+        return enet_state;
 }
 
 /*!
@@ -628,25 +633,25 @@ ErrStatus enet_init(enet_mediamode_enum mediamode, enet_chksumconf_enum checksum
 */
 ErrStatus enet_software_reset(void)
 {
-    uint32_t timeout = 0U;
-    ErrStatus enet_state = ERROR;
-    uint32_t dma_flag;
+        uint32_t timeout = 0U;
+        ErrStatus enet_state = ERROR;
+        uint32_t dma_flag;
 
-    /* reset all core internal registers located in CLK_TX and CLK_RX */
-    ENET_DMA_BCTL |= ENET_DMA_BCTL_SWR;
+        /* reset all core internal registers located in CLK_TX and CLK_RX */
+        ENET_DMA_BCTL |= ENET_DMA_BCTL_SWR;
 
-    /* wait for reset operation complete */
-    do {
-        dma_flag = (ENET_DMA_BCTL & ENET_DMA_BCTL_SWR);
-        timeout++;
-    } while((RESET != dma_flag) && (ENET_DELAY_TO != timeout));
+        /* wait for reset operation complete */
+        do {
+                dma_flag = (ENET_DMA_BCTL & ENET_DMA_BCTL_SWR);
+                timeout++;
+        } while ((RESET != dma_flag) && (ENET_DELAY_TO != timeout));
 
-    /* reset operation complete */
-    if(RESET == (ENET_DMA_BCTL & ENET_DMA_BCTL_SWR)) {
-        enet_state = SUCCESS;
-    }
+        /* reset operation complete */
+        if (RESET == (ENET_DMA_BCTL & ENET_DMA_BCTL_SWR)) {
+                enet_state = SUCCESS;
+        }
 
-    return enet_state;
+        return enet_state;
 }
 
 /*!
@@ -657,68 +662,68 @@ ErrStatus enet_software_reset(void)
 */
 uint32_t enet_rxframe_size_get(void)
 {
-    uint32_t size = 0U;
-    uint32_t status;
+        uint32_t size = 0U;
+        uint32_t status;
 
-    /* get rdes0 information of current RxDMA descriptor */
-    status = dma_current_rxdesc->status;
+        /* get rdes0 information of current RxDMA descriptor */
+        status = dma_current_rxdesc->status;
 
-    /* if the desciptor is owned by DMA */
-    if((uint32_t)RESET != (status & ENET_RDES0_DAV)) {
-        return 0U;
-    }
-
-    /* if has any error, or the frame uses two or more descriptors */
-    if((((uint32_t)RESET) != (status & ENET_RDES0_ERRS)) ||
-            (((uint32_t)RESET) == (status & ENET_RDES0_LDES)) ||
-            (((uint32_t)RESET) == (status & ENET_RDES0_FDES))) {
-        /* drop current receive frame */
-        enet_rxframe_drop();
-
-        return 1U;
-    }
-#ifdef SELECT_DESCRIPTORS_ENHANCED_MODE
-    /* if is an ethernet-type frame, and IP frame payload error occurred */
-    if(((uint32_t)RESET) != (dma_current_rxdesc->status & ENET_RDES0_FRMT) &&
-            ((uint32_t)RESET) != (dma_current_rxdesc->extended_status & ENET_RDES4_IPPLDERR)) {
-        /* drop current receive frame */
-        enet_rxframe_drop();
-
-        return 1U;
-    }
-#else
-    /* if is an ethernet-type frame, and IP frame payload error occurred */
-    if((((uint32_t)RESET) != (status & ENET_RDES0_FRMT)) &&
-            (((uint32_t)RESET) != (status & ENET_RDES0_PCERR))) {
-        /* drop current receive frame */
-        enet_rxframe_drop();
-
-        return 1U;
-    }
-#endif
-    /* if CPU owns current descriptor, no error occured, the frame uses only one descriptor */
-    if((((uint32_t)RESET) == (status & ENET_RDES0_DAV)) &&
-            (((uint32_t)RESET) == (status & ENET_RDES0_ERRS)) &&
-            (((uint32_t)RESET) != (status & ENET_RDES0_LDES)) &&
-            (((uint32_t)RESET) != (status & ENET_RDES0_FDES))) {
-        /* get the size of the received data including CRC */
-        size = GET_RDES0_FRML(status);
-        /* substract the CRC size */
-        size = size - 4U;
-
-        /* if is a type frame, and CRC is not included in forwarding frame */
-        if((RESET != (ENET_MAC_CFG & ENET_MAC_CFG_TFCD)) && (RESET != (status & ENET_RDES0_FRMT))) {
-            size = size + 4U;
+        /* if the desciptor is owned by DMA */
+        if ((uint32_t) RESET != (status & ENET_RDES0_DAV)) {
+                return 0U;
         }
-    } else {
-        enet_unknow_err++;
-        enet_rxframe_drop();
 
-        return 1U;
-    }
+        /* if has any error, or the frame uses two or more descriptors */
+        if ((((uint32_t) RESET) != (status & ENET_RDES0_ERRS)) ||
+                (((uint32_t) RESET) == (status & ENET_RDES0_LDES)) ||
+                (((uint32_t) RESET) == (status & ENET_RDES0_FDES))) {
+                /* drop current receive frame */
+                enet_rxframe_drop();
 
-    /* return packet size */
-    return size;
+                return 1U;
+        }
+#ifdef SELECT_DESCRIPTORS_ENHANCED_MODE
+        /* if is an ethernet-type frame, and IP frame payload error occurred */
+        if(((uint32_t)RESET) != (dma_current_rxdesc->status & ENET_RDES0_FRMT) &&
+                ((uint32_t)RESET) != (dma_current_rxdesc->extended_status & ENET_RDES4_IPPLDERR)) {
+            /* drop current receive frame */
+            enet_rxframe_drop();
+
+            return 1U;
+        }
+#else
+        /* if is an ethernet-type frame, and IP frame payload error occurred */
+        if ((((uint32_t) RESET) != (status & ENET_RDES0_FRMT)) &&
+                (((uint32_t) RESET) != (status & ENET_RDES0_PCERR))) {
+                /* drop current receive frame */
+                enet_rxframe_drop();
+
+                return 1U;
+        }
+#endif
+        /* if CPU owns current descriptor, no error occured, the frame uses only one descriptor */
+        if ((((uint32_t) RESET) == (status & ENET_RDES0_DAV)) &&
+                (((uint32_t) RESET) == (status & ENET_RDES0_ERRS)) &&
+                (((uint32_t) RESET) != (status & ENET_RDES0_LDES)) &&
+                (((uint32_t) RESET) != (status & ENET_RDES0_FDES))) {
+                /* get the size of the received data including CRC */
+                size = GET_RDES0_FRML(status);
+                /* substract the CRC size */
+                size = size - 4U;
+
+                /* if is a type frame, and CRC is not included in forwarding frame */
+                if ((RESET != (ENET_MAC_CFG & ENET_MAC_CFG_TFCD)) && (RESET != (status & ENET_RDES0_FRMT))) {
+                        size = size + 4U;
+                }
+        } else {
+                enet_unknow_err++;
+                enet_rxframe_drop();
+
+                return 1U;
+        }
+
+        /* return packet size */
+        return size;
 }
 
 /*!
@@ -732,65 +737,65 @@ uint32_t enet_rxframe_size_get(void)
 */
 void enet_descriptors_chain_init(enet_dmadirection_enum direction)
 {
-    uint32_t num = 0U, count = 0U, maxsize = 0U;
-    uint32_t desc_status = 0U, desc_bufsize = 0U;
-    enet_descriptors_struct *desc, *desc_tab;
-    uint8_t *buf;
+        uint32_t num = 0U, count = 0U, maxsize = 0U;
+        uint32_t desc_status = 0U, desc_bufsize = 0U;
+        enet_descriptors_struct *desc, *desc_tab;
+        uint8_t *buf;
 
-    /* if want to initialize DMA Tx descriptors */
-    if(ENET_DMA_TX == direction) {
-        /* save a copy of the DMA Tx descriptors */
-        desc_tab = txdesc_tab;
-        buf = &tx_buff[0][0];
-        count = ENET_TXBUF_NUM;
-        maxsize = ENET_TXBUF_SIZE;
+        /* if want to initialize DMA Tx descriptors */
+        if (ENET_DMA_TX == direction) {
+                /* save a copy of the DMA Tx descriptors */
+                desc_tab = txdesc_tab;
+                buf = &tx_buff[0][0];
+                count = ENET_TXBUF_NUM;
+                maxsize = ENET_TXBUF_SIZE;
 
-        /* select chain mode */
-        desc_status = ENET_TDES0_TCHM;
+                /* select chain mode */
+                desc_status = ENET_TDES0_TCHM;
 
-        /* configure DMA Tx descriptor table address register */
-        ENET_DMA_TDTADDR = (uint32_t)desc_tab;
-        dma_current_txdesc = desc_tab;
-    } else {
-        /* if want to initialize DMA Rx descriptors */
-        /* save a copy of the DMA Rx descriptors */
-        desc_tab = rxdesc_tab;
-        buf = &rx_buff[0][0];
-        count = ENET_RXBUF_NUM;
-        maxsize = ENET_RXBUF_SIZE;
-
-        /* enable receiving */
-        desc_status = ENET_RDES0_DAV;
-        /* select receive chained mode and set buffer1 size */
-        desc_bufsize = ENET_RDES1_RCHM | (uint32_t)ENET_RXBUF_SIZE;
-
-        /* configure DMA Rx descriptor table address register */
-        ENET_DMA_RDTADDR = (uint32_t)desc_tab;
-        dma_current_rxdesc = desc_tab;
-    }
-    dma_current_ptp_rxdesc = NULL;
-    dma_current_ptp_txdesc = NULL;
-
-    /* configure each descriptor */
-    for(num = 0U; num < count; num++) {
-        /* get the pointer to the next descriptor of the descriptor table */
-        desc = desc_tab + num;
-
-        /* configure descriptors */
-        desc->status = desc_status;
-        desc->control_buffer_size = desc_bufsize;
-        desc->buffer1_addr = (uint32_t)(&buf[num * maxsize]);
-
-        /* if is not the last descriptor */
-        if(num < (count - 1U)) {
-            /* configure the next descriptor address */
-            desc->buffer2_next_desc_addr = (uint32_t)(desc_tab + num + 1U);
+                /* configure DMA Tx descriptor table address register */
+                ENET_DMA_TDTADDR = (uint32_t) desc_tab;
+                dma_current_txdesc = desc_tab;
         } else {
-            /* when it is the last descriptor, the next descriptor address
-            equals to first descriptor address in descriptor table */
-            desc->buffer2_next_desc_addr = (uint32_t) desc_tab;
+                /* if want to initialize DMA Rx descriptors */
+                /* save a copy of the DMA Rx descriptors */
+                desc_tab = rxdesc_tab;
+                buf = &rx_buff[0][0];
+                count = ENET_RXBUF_NUM;
+                maxsize = ENET_RXBUF_SIZE;
+
+                /* enable receiving */
+                desc_status = ENET_RDES0_DAV;
+                /* select receive chained mode and set buffer1 size */
+                desc_bufsize = ENET_RDES1_RCHM | (uint32_t) ENET_RXBUF_SIZE;
+
+                /* configure DMA Rx descriptor table address register */
+                ENET_DMA_RDTADDR = (uint32_t) desc_tab;
+                dma_current_rxdesc = desc_tab;
         }
-    }
+        dma_current_ptp_rxdesc = NULL;
+        dma_current_ptp_txdesc = NULL;
+
+        /* configure each descriptor */
+        for (num = 0U; num < count; num++) {
+                /* get the pointer to the next descriptor of the descriptor table */
+                desc = desc_tab + num;
+
+                /* configure descriptors */
+                desc->status = desc_status;
+                desc->control_buffer_size = desc_bufsize;
+                desc->buffer1_addr = (uint32_t) (&buf[num * maxsize]);
+
+                /* if is not the last descriptor */
+                if (num < (count - 1U)) {
+                        /* configure the next descriptor address */
+                        desc->buffer2_next_desc_addr = (uint32_t) (desc_tab + num + 1U);
+                } else {
+                        /* when it is the last descriptor, the next descriptor address
+                        equals to first descriptor address in descriptor table */
+                        desc->buffer2_next_desc_addr = (uint32_t) desc_tab;
+                }
+        }
 }
 
 /*!
@@ -804,68 +809,68 @@ void enet_descriptors_chain_init(enet_dmadirection_enum direction)
 */
 void enet_descriptors_ring_init(enet_dmadirection_enum direction)
 {
-    uint32_t num = 0U, count = 0U, maxsize = 0U;
-    uint32_t desc_status = 0U, desc_bufsize = 0U;
-    enet_descriptors_struct *desc;
-    enet_descriptors_struct *desc_tab;
-    uint8_t *buf;
+        uint32_t num = 0U, count = 0U, maxsize = 0U;
+        uint32_t desc_status = 0U, desc_bufsize = 0U;
+        enet_descriptors_struct *desc;
+        enet_descriptors_struct *desc_tab;
+        uint8_t *buf;
 
-    /* configure descriptor skip length */
-    ENET_DMA_BCTL &= ~ENET_DMA_BCTL_DPSL;
-    ENET_DMA_BCTL |= DMA_BCTL_DPSL(0);
+        /* configure descriptor skip length */
+        ENET_DMA_BCTL &= ~ENET_DMA_BCTL_DPSL;
+        ENET_DMA_BCTL |= DMA_BCTL_DPSL(0);
 
-    /* if want to initialize DMA Tx descriptors */
-    if(ENET_DMA_TX == direction) {
-        /* save a copy of the DMA Tx descriptors */
-        desc_tab = txdesc_tab;
-        buf = &tx_buff[0][0];
-        count = ENET_TXBUF_NUM;
-        maxsize = ENET_TXBUF_SIZE;
+        /* if want to initialize DMA Tx descriptors */
+        if (ENET_DMA_TX == direction) {
+                /* save a copy of the DMA Tx descriptors */
+                desc_tab = txdesc_tab;
+                buf = &tx_buff[0][0];
+                count = ENET_TXBUF_NUM;
+                maxsize = ENET_TXBUF_SIZE;
 
-        /* configure DMA Tx descriptor table address register */
-        ENET_DMA_TDTADDR = (uint32_t)desc_tab;
-        dma_current_txdesc = desc_tab;
-    } else {
-        /* if want to initialize DMA Rx descriptors */
-        /* save a copy of the DMA Rx descriptors */
-        desc_tab = rxdesc_tab;
-        buf = &rx_buff[0][0];
-        count = ENET_RXBUF_NUM;
-        maxsize = ENET_RXBUF_SIZE;
+                /* configure DMA Tx descriptor table address register */
+                ENET_DMA_TDTADDR = (uint32_t) desc_tab;
+                dma_current_txdesc = desc_tab;
+        } else {
+                /* if want to initialize DMA Rx descriptors */
+                /* save a copy of the DMA Rx descriptors */
+                desc_tab = rxdesc_tab;
+                buf = &rx_buff[0][0];
+                count = ENET_RXBUF_NUM;
+                maxsize = ENET_RXBUF_SIZE;
 
-        /* enable receiving */
-        desc_status = ENET_RDES0_DAV;
-        /* set buffer1 size */
-        desc_bufsize = ENET_RXBUF_SIZE;
+                /* enable receiving */
+                desc_status = ENET_RDES0_DAV;
+                /* set buffer1 size */
+                desc_bufsize = ENET_RXBUF_SIZE;
 
-        /* configure DMA Rx descriptor table address register */
-        ENET_DMA_RDTADDR = (uint32_t)desc_tab;
-        dma_current_rxdesc = desc_tab;
-    }
-    dma_current_ptp_rxdesc = NULL;
-    dma_current_ptp_txdesc = NULL;
-
-    /* configure each descriptor */
-    for(num = 0U; num < count; num++) {
-        /* get the pointer to the next descriptor of the descriptor table */
-        desc = desc_tab + num;
-
-        /* configure descriptors */
-        desc->status = desc_status;
-        desc->control_buffer_size = desc_bufsize;
-        desc->buffer1_addr = (uint32_t)(&buf[num * maxsize]);
-
-        /* when it is the last descriptor */
-        if(num == (count - 1U)) {
-            if(ENET_DMA_TX == direction) {
-                /* configure transmit end of ring mode */
-                desc->status |= ENET_TDES0_TERM;
-            } else {
-                /* configure receive end of ring mode */
-                desc->control_buffer_size |= ENET_RDES1_RERM;
-            }
+                /* configure DMA Rx descriptor table address register */
+                ENET_DMA_RDTADDR = (uint32_t) desc_tab;
+                dma_current_rxdesc = desc_tab;
         }
-    }
+        dma_current_ptp_rxdesc = NULL;
+        dma_current_ptp_txdesc = NULL;
+
+        /* configure each descriptor */
+        for (num = 0U; num < count; num++) {
+                /* get the pointer to the next descriptor of the descriptor table */
+                desc = desc_tab + num;
+
+                /* configure descriptors */
+                desc->status = desc_status;
+                desc->control_buffer_size = desc_bufsize;
+                desc->buffer1_addr = (uint32_t) (&buf[num * maxsize]);
+
+                /* when it is the last descriptor */
+                if (num == (count - 1U)) {
+                        if (ENET_DMA_TX == direction) {
+                                /* configure transmit end of ring mode */
+                                desc->status |= ENET_TDES0_TERM;
+                        } else {
+                                /* configure receive end of ring mode */
+                                desc->control_buffer_size |= ENET_RDES1_RERM;
+                        }
+                }
+        }
 }
 
 /*!
@@ -877,71 +882,74 @@ void enet_descriptors_ring_init(enet_dmadirection_enum direction)
 */
 ErrStatus enet_frame_receive(uint8_t *buffer, uint32_t bufsize)
 {
-    uint32_t offset = 0U, size = 0U;
+        uint32_t offset = 0U, size = 0U;
 
-    /* the descriptor is busy due to own by the DMA */
-    if((uint32_t)RESET != (dma_current_rxdesc->status & ENET_RDES0_DAV)) {
-        return ERROR;
-    }
-
-
-    /* if buffer pointer is null, indicates that users has copied data in application */
-    if(NULL != buffer) {
-        /* if no error occurs, and the frame uses only one descriptor */
-        if((((uint32_t)RESET) == (dma_current_rxdesc->status & ENET_RDES0_ERRS)) &&
-                (((uint32_t)RESET) != (dma_current_rxdesc->status & ENET_RDES0_LDES)) &&
-                (((uint32_t)RESET) != (dma_current_rxdesc->status & ENET_RDES0_FDES))) {
-            /* get the frame length except CRC */
-            size = GET_RDES0_FRML(dma_current_rxdesc->status);
-            size = size - 4U;
-
-            /* if is a type frame, and CRC is not included in forwarding frame */
-            if((RESET != (ENET_MAC_CFG & ENET_MAC_CFG_TFCD)) && (RESET != (dma_current_rxdesc->status & ENET_RDES0_FRMT))) {
-                size = size + 4U;
-            }
-
-            /* to avoid situation that the frame size exceeds the buffer length */
-            if(size > bufsize) {
+        /* the descriptor is busy due to own by the DMA */
+        if ((uint32_t) RESET != (dma_current_rxdesc->status & ENET_RDES0_DAV)) {
                 return ERROR;
-            }
-
-            /* copy data from Rx buffer to application buffer */
-            for(offset = 0U; offset < size; offset++) {
-                (*(buffer + offset)) = (*(__IO uint8_t *)(uint32_t)((dma_current_rxdesc->buffer1_addr) + offset));
-            }
-
-        } else {
-            /* return ERROR */
-            return ERROR;
         }
-    }
-    /* enable reception, descriptor is owned by DMA */
-    dma_current_rxdesc->status = ENET_RDES0_DAV;
 
-    /* check Rx buffer unavailable flag status */
-    if((uint32_t)RESET != (ENET_DMA_STAT & ENET_DMA_STAT_RBU)) {
-        /* clear RBU flag */
-        ENET_DMA_STAT = ENET_DMA_STAT_RBU;
-        /* resume DMA reception by writing to the RPEN register*/
-        ENET_DMA_RPEN = 0U;
-    }
 
-    /* update the current RxDMA descriptor pointer to the next decriptor in RxDMA decriptor table */
-    /* chained mode */
-    if((uint32_t)RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RCHM)) {
-        dma_current_rxdesc = (enet_descriptors_struct *)(dma_current_rxdesc->buffer2_next_desc_addr);
-    } else {
-        /* ring mode */
-        if((uint32_t)RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RERM)) {
-            /* if is the last descriptor in table, the next descriptor is the table header */
-            dma_current_rxdesc = (enet_descriptors_struct *)(ENET_DMA_RDTADDR);
-        } else {
-            /* the next descriptor is the current address, add the descriptor size, and descriptor skip length */
-            dma_current_rxdesc = (enet_descriptors_struct *)(uint32_t)((uint32_t)dma_current_rxdesc + ETH_DMARXDESC_SIZE + (GET_DMA_BCTL_DPSL(ENET_DMA_BCTL)));
+        /* if buffer pointer is null, indicates that users has copied data in application */
+        if (NULL != buffer) {
+                /* if no error occurs, and the frame uses only one descriptor */
+                if ((((uint32_t) RESET) == (dma_current_rxdesc->status & ENET_RDES0_ERRS)) &&
+                        (((uint32_t) RESET) != (dma_current_rxdesc->status & ENET_RDES0_LDES)) &&
+                        (((uint32_t) RESET) != (dma_current_rxdesc->status & ENET_RDES0_FDES))) {
+                        /* get the frame length except CRC */
+                        size = GET_RDES0_FRML(dma_current_rxdesc->status);
+                        size = size - 4U;
+
+                        /* if is a type frame, and CRC is not included in forwarding frame */
+                        if ((RESET != (ENET_MAC_CFG & ENET_MAC_CFG_TFCD))
+                                && (RESET != (dma_current_rxdesc->status & ENET_RDES0_FRMT))) {
+                                size = size + 4U;
+                        }
+
+                        /* to avoid situation that the frame size exceeds the buffer length */
+                        if (size > bufsize) {
+                                return ERROR;
+                        }
+
+                        /* copy data from Rx buffer to application buffer */
+                        for (offset = 0U; offset < size; offset++) {
+                                (*(buffer + offset)) =
+                                        (*(__IO uint8_t *) (uint32_t) ((dma_current_rxdesc->buffer1_addr) + offset));
+                        }
+
+                } else {
+                        /* return ERROR */
+                        return ERROR;
+                }
         }
-    }
+        /* enable reception, descriptor is owned by DMA */
+        dma_current_rxdesc->status = ENET_RDES0_DAV;
 
-    return SUCCESS;
+        /* check Rx buffer unavailable flag status */
+        if ((uint32_t) RESET != (ENET_DMA_STAT & ENET_DMA_STAT_RBU)) {
+                /* clear RBU flag */
+                ENET_DMA_STAT = ENET_DMA_STAT_RBU;
+                /* resume DMA reception by writing to the RPEN register*/
+                ENET_DMA_RPEN = 0U;
+        }
+
+        /* update the current RxDMA descriptor pointer to the next decriptor in RxDMA decriptor table */
+        /* chained mode */
+        if ((uint32_t) RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RCHM)) {
+                dma_current_rxdesc = (enet_descriptors_struct *) (dma_current_rxdesc->buffer2_next_desc_addr);
+        } else {
+                /* ring mode */
+                if ((uint32_t) RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RERM)) {
+                        /* if is the last descriptor in table, the next descriptor is the table header */
+                        dma_current_rxdesc = (enet_descriptors_struct *) (ENET_DMA_RDTADDR);
+                } else {
+                        /* the next descriptor is the current address, add the descriptor size, and descriptor skip length */
+                        dma_current_rxdesc = (enet_descriptors_struct *) (uint32_t) ((uint32_t) dma_current_rxdesc
+                                + ETH_DMARXDESC_SIZE + (GET_DMA_BCTL_DPSL(ENET_DMA_BCTL)));
+                }
+        }
+
+        return SUCCESS;
 }
 
 /*!
@@ -954,61 +962,63 @@ ErrStatus enet_frame_receive(uint8_t *buffer, uint32_t bufsize)
 */
 ErrStatus enet_frame_transmit(uint8_t *buffer, uint32_t length)
 {
-    uint32_t offset = 0U;
-    uint32_t dma_tbu_flag, dma_tu_flag;
+        uint32_t offset = 0U;
+        uint32_t dma_tbu_flag, dma_tu_flag;
 
-    /* the descriptor is busy due to own by the DMA */
-    if((uint32_t)RESET != (dma_current_txdesc->status & ENET_TDES0_DAV)) {
-        return ERROR;
-    }
-
-    /* only frame length no more than ENET_MAX_FRAME_SIZE is allowed */
-    if(length > ENET_MAX_FRAME_SIZE) {
-        return ERROR;
-    }
-
-    /* if buffer pointer is null, indicates that users has handled data in application */
-    if(NULL != buffer) {
-        /* copy frame data from application buffer to Tx buffer */
-        for(offset = 0U; offset < length; offset++) {
-            (*(__IO uint8_t *)(uint32_t)((dma_current_txdesc->buffer1_addr) + offset)) = (*(buffer + offset));
+        /* the descriptor is busy due to own by the DMA */
+        if ((uint32_t) RESET != (dma_current_txdesc->status & ENET_TDES0_DAV)) {
+                return ERROR;
         }
-    }
 
-    /* set the frame length */
-    dma_current_txdesc->control_buffer_size = length;
-    /* set the segment of frame, frame is transmitted in one descriptor */
-    dma_current_txdesc->status |= ENET_TDES0_LSG | ENET_TDES0_FSG;
-    /* enable the DMA transmission */
-    dma_current_txdesc->status |= ENET_TDES0_DAV;
+        /* only frame length no more than ENET_MAX_FRAME_SIZE is allowed */
+        if (length > ENET_MAX_FRAME_SIZE) {
+                return ERROR;
+        }
 
-    /* check Tx buffer unavailable flag status */
-    dma_tbu_flag = (ENET_DMA_STAT & ENET_DMA_STAT_TBU);
-    dma_tu_flag = (ENET_DMA_STAT & ENET_DMA_STAT_TU);
+        /* if buffer pointer is null, indicates that users has handled data in application */
+        if (NULL != buffer) {
+                /* copy frame data from application buffer to Tx buffer */
+                for (offset = 0U; offset < length; offset++) {
+                        (*(__IO uint8_t *) (uint32_t) ((dma_current_txdesc->buffer1_addr) + offset)) =
+                                (*(buffer + offset));
+                }
+        }
 
-    if((RESET != dma_tbu_flag) || (RESET != dma_tu_flag)) {
-        /* clear TBU and TU flag */
-        ENET_DMA_STAT = (dma_tbu_flag | dma_tu_flag);
-        /* resume DMA transmission by writing to the TPEN register*/
-        ENET_DMA_TPEN = 0U;
-    }
+        /* set the frame length */
+        dma_current_txdesc->control_buffer_size = length;
+        /* set the segment of frame, frame is transmitted in one descriptor */
+        dma_current_txdesc->status |= ENET_TDES0_LSG | ENET_TDES0_FSG;
+        /* enable the DMA transmission */
+        dma_current_txdesc->status |= ENET_TDES0_DAV;
 
-    /* update the current TxDMA descriptor pointer to the next decriptor in TxDMA decriptor table*/
-    /* chained mode */
-    if((uint32_t)RESET != (dma_current_txdesc->status & ENET_TDES0_TCHM)) {
-        dma_current_txdesc = (enet_descriptors_struct *)(dma_current_txdesc->buffer2_next_desc_addr);
-    } else {
-        /* ring mode */
-        if((uint32_t)RESET != (dma_current_txdesc->status & ENET_TDES0_TERM)) {
-            /* if is the last descriptor in table, the next descriptor is the table header */
-            dma_current_txdesc = (enet_descriptors_struct *)(ENET_DMA_TDTADDR);
+        /* check Tx buffer unavailable flag status */
+        dma_tbu_flag = (ENET_DMA_STAT & ENET_DMA_STAT_TBU);
+        dma_tu_flag = (ENET_DMA_STAT & ENET_DMA_STAT_TU);
+
+        if ((RESET != dma_tbu_flag) || (RESET != dma_tu_flag)) {
+                /* clear TBU and TU flag */
+                ENET_DMA_STAT = (dma_tbu_flag | dma_tu_flag);
+                /* resume DMA transmission by writing to the TPEN register*/
+                ENET_DMA_TPEN = 0U;
+        }
+
+        /* update the current TxDMA descriptor pointer to the next decriptor in TxDMA decriptor table*/
+        /* chained mode */
+        if ((uint32_t) RESET != (dma_current_txdesc->status & ENET_TDES0_TCHM)) {
+                dma_current_txdesc = (enet_descriptors_struct *) (dma_current_txdesc->buffer2_next_desc_addr);
         } else {
-            /* the next descriptor is the current address, add the descriptor size, and descriptor skip length */
-            dma_current_txdesc = (enet_descriptors_struct *)(uint32_t)((uint32_t)dma_current_txdesc + ETH_DMATXDESC_SIZE + (GET_DMA_BCTL_DPSL(ENET_DMA_BCTL)));
+                /* ring mode */
+                if ((uint32_t) RESET != (dma_current_txdesc->status & ENET_TDES0_TERM)) {
+                        /* if is the last descriptor in table, the next descriptor is the table header */
+                        dma_current_txdesc = (enet_descriptors_struct *) (ENET_DMA_TDTADDR);
+                } else {
+                        /* the next descriptor is the current address, add the descriptor size, and descriptor skip length */
+                        dma_current_txdesc = (enet_descriptors_struct *) (uint32_t) ((uint32_t) dma_current_txdesc
+                                + ETH_DMATXDESC_SIZE + (GET_DMA_BCTL_DPSL(ENET_DMA_BCTL)));
+                }
         }
-    }
 
-    return SUCCESS;
+        return SUCCESS;
 }
 
 /*!
@@ -1025,8 +1035,8 @@ ErrStatus enet_frame_transmit(uint8_t *buffer, uint32_t length)
 */
 void enet_transmit_checksum_config(enet_descriptors_struct *desc, uint32_t checksum)
 {
-    desc->status &= ~ENET_TDES0_CM;
-    desc->status |= checksum;
+        desc->status &= ~ENET_TDES0_CM;
+        desc->status |= checksum;
 }
 
 /*!
@@ -1037,8 +1047,8 @@ void enet_transmit_checksum_config(enet_descriptors_struct *desc, uint32_t check
 */
 void enet_enable(void)
 {
-    enet_tx_enable();
-    enet_rx_enable();
+        enet_tx_enable();
+        enet_rx_enable();
 }
 
 /*!
@@ -1049,8 +1059,8 @@ void enet_enable(void)
 */
 void enet_disable(void)
 {
-    enet_tx_disable();
-    enet_rx_disable();
+        enet_tx_disable();
+        enet_rx_disable();
 }
 
 /*!
@@ -1068,8 +1078,8 @@ void enet_disable(void)
 */
 void enet_mac_address_set(enet_macaddress_enum mac_addr, uint8_t paddr[])
 {
-    REG32(ENET_ADDRH_BASE + (uint32_t)mac_addr) = ENET_SET_MACADDRH(paddr);
-    REG32(ENET_ADDRL_BASE + (uint32_t)mac_addr) = ENET_SET_MACADDRL(paddr);
+        REG32(ENET_ADDRH_BASE + (uint32_t) mac_addr) = ENET_SET_MACADDRH(paddr);
+        REG32(ENET_ADDRL_BASE + (uint32_t) mac_addr) = ENET_SET_MACADDRL(paddr);
 }
 
 /*!
@@ -1086,12 +1096,12 @@ void enet_mac_address_set(enet_macaddress_enum mac_addr, uint8_t paddr[])
 */
 void enet_mac_address_get(enet_macaddress_enum mac_addr, uint8_t paddr[])
 {
-    paddr[0] = ENET_GET_MACADDR(mac_addr, 0U);
-    paddr[1] = ENET_GET_MACADDR(mac_addr, 1U);
-    paddr[2] = ENET_GET_MACADDR(mac_addr, 2U);
-    paddr[3] = ENET_GET_MACADDR(mac_addr, 3U);
-    paddr[4] = ENET_GET_MACADDR(mac_addr, 4U);
-    paddr[5] = ENET_GET_MACADDR(mac_addr, 5U);
+        paddr[0] = ENET_GET_MACADDR(mac_addr, 0U);
+        paddr[1] = ENET_GET_MACADDR(mac_addr, 1U);
+        paddr[2] = ENET_GET_MACADDR(mac_addr, 2U);
+        paddr[3] = ENET_GET_MACADDR(mac_addr, 3U);
+        paddr[4] = ENET_GET_MACADDR(mac_addr, 4U);
+        paddr[5] = ENET_GET_MACADDR(mac_addr, 5U);
 }
 
 /*!
@@ -1140,11 +1150,11 @@ void enet_mac_address_get(enet_macaddress_enum mac_addr, uint8_t paddr[])
 */
 FlagStatus enet_flag_get(enet_flag_enum enet_flag)
 {
-    if(RESET != (ENET_REG_VAL(enet_flag) & BIT(ENET_BIT_POS(enet_flag)))) {
-        return SET;
-    } else {
-        return RESET;
-    }
+        if (RESET != (ENET_REG_VAL(enet_flag) & BIT(ENET_BIT_POS(enet_flag)))) {
+                return SET;
+        } else {
+                return RESET;
+        }
 }
 
 /*!
@@ -1171,8 +1181,8 @@ FlagStatus enet_flag_get(enet_flag_enum enet_flag)
 */
 void enet_flag_clear(enet_flag_clear_enum enet_flag)
 {
-    /* write 1 to the corresponding bit in ENET_DMA_STAT, to clear it */
-    ENET_REG_VAL(enet_flag) = BIT(ENET_BIT_POS(enet_flag));
+        /* write 1 to the corresponding bit in ENET_DMA_STAT, to clear it */
+        ENET_REG_VAL(enet_flag) = BIT(ENET_BIT_POS(enet_flag));
 }
 
 /*!
@@ -1207,13 +1217,13 @@ void enet_flag_clear(enet_flag_clear_enum enet_flag)
 */
 void enet_interrupt_enable(enet_int_enum enet_int)
 {
-    if(DMA_INTEN_REG_OFFSET == ((uint32_t)enet_int >> 6)) {
-        /* ENET_DMA_INTEN register interrupt */
-        ENET_REG_VAL(enet_int) |= BIT(ENET_BIT_POS(enet_int));
-    } else {
-        /* other INTMSK register interrupt */
-        ENET_REG_VAL(enet_int) &= ~BIT(ENET_BIT_POS(enet_int));
-    }
+        if (DMA_INTEN_REG_OFFSET == ((uint32_t) enet_int >> 6)) {
+                /* ENET_DMA_INTEN register interrupt */
+                ENET_REG_VAL(enet_int) |= BIT(ENET_BIT_POS(enet_int));
+        } else {
+                /* other INTMSK register interrupt */
+                ENET_REG_VAL(enet_int) &= ~BIT(ENET_BIT_POS(enet_int));
+        }
 }
 
 /*!
@@ -1248,13 +1258,13 @@ void enet_interrupt_enable(enet_int_enum enet_int)
 */
 void enet_interrupt_disable(enet_int_enum enet_int)
 {
-    if(DMA_INTEN_REG_OFFSET == ((uint32_t)enet_int >> 6)) {
-        /* ENET_DMA_INTEN register interrupt */
-        ENET_REG_VAL(enet_int) &= ~BIT(ENET_BIT_POS(enet_int));
-    } else {
-        /* other INTMSK register interrupt */
-        ENET_REG_VAL(enet_int) |= BIT(ENET_BIT_POS(enet_int));
-    }
+        if (DMA_INTEN_REG_OFFSET == ((uint32_t) enet_int >> 6)) {
+                /* ENET_DMA_INTEN register interrupt */
+                ENET_REG_VAL(enet_int) &= ~BIT(ENET_BIT_POS(enet_int));
+        } else {
+                /* other INTMSK register interrupt */
+                ENET_REG_VAL(enet_int) |= BIT(ENET_BIT_POS(enet_int));
+        }
 }
 
 /*!
@@ -1295,11 +1305,11 @@ void enet_interrupt_disable(enet_int_enum enet_int)
 */
 FlagStatus enet_interrupt_flag_get(enet_int_flag_enum int_flag)
 {
-    if(RESET != (ENET_REG_VAL(int_flag) & BIT(ENET_BIT_POS(int_flag)))) {
-        return SET;
-    } else {
-        return RESET;
-    }
+        if (RESET != (ENET_REG_VAL(int_flag) & BIT(ENET_BIT_POS(int_flag)))) {
+                return SET;
+        } else {
+                return RESET;
+        }
 }
 
 /*!
@@ -1326,8 +1336,8 @@ FlagStatus enet_interrupt_flag_get(enet_int_flag_enum int_flag)
 */
 void enet_interrupt_flag_clear(enet_int_flag_clear_enum int_flag_clear)
 {
-    /* write 1 to the corresponding bit in ENET_DMA_STAT, to clear it */
-    ENET_REG_VAL(int_flag_clear) = BIT(ENET_BIT_POS(int_flag_clear));
+        /* write 1 to the corresponding bit in ENET_DMA_STAT, to clear it */
+        ENET_REG_VAL(int_flag_clear) = BIT(ENET_BIT_POS(int_flag_clear));
 }
 
 /*!
@@ -1338,9 +1348,9 @@ void enet_interrupt_flag_clear(enet_int_flag_clear_enum int_flag_clear)
 */
 void enet_tx_enable(void)
 {
-    ENET_MAC_CFG |= ENET_MAC_CFG_TEN;
-    enet_txfifo_flush();
-    ENET_DMA_CTL |= ENET_DMA_CTL_STE;
+        ENET_MAC_CFG |= ENET_MAC_CFG_TEN;
+        enet_txfifo_flush();
+        ENET_DMA_CTL |= ENET_DMA_CTL_STE;
 }
 
 /*!
@@ -1351,9 +1361,9 @@ void enet_tx_enable(void)
 */
 void enet_tx_disable(void)
 {
-    ENET_DMA_CTL &= ~ENET_DMA_CTL_STE;
-    enet_txfifo_flush();
-    ENET_MAC_CFG &= ~ENET_MAC_CFG_TEN;
+        ENET_DMA_CTL &= ~ENET_DMA_CTL_STE;
+        enet_txfifo_flush();
+        ENET_MAC_CFG &= ~ENET_MAC_CFG_TEN;
 }
 
 /*!
@@ -1364,8 +1374,8 @@ void enet_tx_disable(void)
 */
 void enet_rx_enable(void)
 {
-    ENET_MAC_CFG |= ENET_MAC_CFG_REN;
-    ENET_DMA_CTL |= ENET_DMA_CTL_SRE;
+        ENET_MAC_CFG |= ENET_MAC_CFG_REN;
+        ENET_DMA_CTL |= ENET_DMA_CTL_SRE;
 }
 
 /*!
@@ -1376,8 +1386,8 @@ void enet_rx_enable(void)
 */
 void enet_rx_disable(void)
 {
-    ENET_DMA_CTL &= ~ENET_DMA_CTL_SRE;
-    ENET_MAC_CFG &= ~ENET_MAC_CFG_REN;
+        ENET_DMA_CTL &= ~ENET_DMA_CTL_SRE;
+        ENET_MAC_CFG &= ~ENET_MAC_CFG_REN;
 }
 
 /*!
@@ -1394,22 +1404,22 @@ void enet_rx_disable(void)
 */
 void enet_registers_get(enet_registers_type_enum type, uint32_t *preg, uint32_t num)
 {
-    uint32_t offset = 0U, max = 0U, limit = 0U;
+        uint32_t offset = 0U, max = 0U, limit = 0U;
 
-    offset = (uint32_t)type;
-    max = (uint32_t)type + num;
-    limit = sizeof(enet_reg_tab) / sizeof(uint16_t);
+        offset = (uint32_t) type;
+        max = (uint32_t) type + num;
+        limit = sizeof(enet_reg_tab) / sizeof(uint16_t);
 
-    /* prevent element in this array is out of range */
-    if(max > limit) {
-        max = limit;
-    }
+        /* prevent element in this array is out of range */
+        if (max > limit) {
+                max = limit;
+        }
 
-    for(; offset < max; offset++) {
-        /* get value of the corresponding register */
-        *preg = REG32((ENET) + enet_reg_tab[offset]);
-        preg++;
-    }
+        for (; offset < max; offset++) {
+                /* get value of the corresponding register */
+                *preg = REG32((ENET) + enet_reg_tab[offset]);
+                preg++;
+        }
 }
 
 /*!
@@ -1433,31 +1443,31 @@ void enet_registers_get(enet_registers_type_enum type, uint32_t *preg, uint32_t 
 */
 uint32_t enet_debug_status_get(uint32_t mac_debug)
 {
-    uint32_t temp_state = 0U;
+        uint32_t temp_state = 0U;
 
-    switch(mac_debug) {
-    case ENET_RX_ASYNCHRONOUS_FIFO_STATE:
-        temp_state = GET_MAC_DBG_RXAFS(ENET_MAC_DBG);
-        break;
-    case ENET_RXFIFO_READ_STATUS:
-        temp_state = GET_MAC_DBG_RXFRS(ENET_MAC_DBG);
-        break;
-    case ENET_RXFIFO_STATE:
-        temp_state = GET_MAC_DBG_RXFS(ENET_MAC_DBG);
-        break;
-    case ENET_MAC_TRANSMITTER_STATUS:
-        temp_state = GET_MAC_DBG_SOMT(ENET_MAC_DBG);
-        break;
-    case ENET_TXFIFO_READ_STATUS:
-        temp_state = GET_MAC_DBG_TXFRS(ENET_MAC_DBG);
-        break;
-    default:
-        if(RESET != (ENET_MAC_DBG & mac_debug)) {
-            temp_state = 0x1U;
+        switch (mac_debug) {
+        case ENET_RX_ASYNCHRONOUS_FIFO_STATE:
+                temp_state = GET_MAC_DBG_RXAFS(ENET_MAC_DBG);
+                break;
+        case ENET_RXFIFO_READ_STATUS:
+                temp_state = GET_MAC_DBG_RXFRS(ENET_MAC_DBG);
+                break;
+        case ENET_RXFIFO_STATE:
+                temp_state = GET_MAC_DBG_RXFS(ENET_MAC_DBG);
+                break;
+        case ENET_MAC_TRANSMITTER_STATUS:
+                temp_state = GET_MAC_DBG_SOMT(ENET_MAC_DBG);
+                break;
+        case ENET_TXFIFO_READ_STATUS:
+                temp_state = GET_MAC_DBG_TXFRS(ENET_MAC_DBG);
+                break;
+        default:
+                if (RESET != (ENET_MAC_DBG & mac_debug)) {
+                        temp_state = 0x1U;
+                }
+                break;
         }
-        break;
-    }
-    return temp_state;
+        return temp_state;
 }
 
 /*!
@@ -1471,7 +1481,7 @@ uint32_t enet_debug_status_get(uint32_t mac_debug)
 */
 void enet_address_filter_enable(enet_macaddress_enum mac_addr)
 {
-    REG32(ENET_ADDRH_BASE + mac_addr) |= ENET_MAC_ADDR1H_AFE;
+        REG32(ENET_ADDRH_BASE + mac_addr) |= ENET_MAC_ADDR1H_AFE;
 }
 
 /*!
@@ -1486,7 +1496,7 @@ void enet_address_filter_enable(enet_macaddress_enum mac_addr)
 */
 void enet_address_filter_disable(enet_macaddress_enum mac_addr)
 {
-    REG32(ENET_ADDRH_BASE + mac_addr) &= ~ENET_MAC_ADDR1H_AFE;
+        REG32(ENET_ADDRH_BASE + mac_addr) &= ~ENET_MAC_ADDR1H_AFE;
 }
 
 /*!
@@ -1513,15 +1523,15 @@ void enet_address_filter_disable(enet_macaddress_enum mac_addr)
 */
 void enet_address_filter_config(enet_macaddress_enum mac_addr, uint32_t addr_mask, uint32_t filter_type)
 {
-    uint32_t reg;
+        uint32_t reg;
 
-    /* get the address filter register value which is to be configured */
-    reg = REG32(ENET_ADDRH_BASE + mac_addr);
+        /* get the address filter register value which is to be configured */
+        reg = REG32(ENET_ADDRH_BASE + mac_addr);
 
-    /* clear and configure the address filter register */
-    reg &= ~(ENET_MAC_ADDR1H_MB | ENET_MAC_ADDR1H_SAF);
-    reg |= (addr_mask | filter_type);
-    REG32(ENET_ADDRH_BASE + mac_addr) = reg;
+        /* clear and configure the address filter register */
+        reg &= ~(ENET_MAC_ADDR1H_MB | ENET_MAC_ADDR1H_SAF);
+        reg |= (addr_mask | filter_type);
+        REG32(ENET_ADDRH_BASE + mac_addr) = reg;
 }
 
 /*!
@@ -1532,53 +1542,53 @@ void enet_address_filter_config(enet_macaddress_enum mac_addr, uint32_t addr_mas
 */
 ErrStatus enet_phy_config(void)
 {
-    uint32_t ahbclk;
-    uint32_t reg;
-    uint16_t phy_value;
-    ErrStatus enet_state = ERROR;
+        uint32_t ahbclk;
+        uint32_t reg;
+        uint16_t phy_value;
+        ErrStatus enet_state = ERROR;
 
-    /* clear the previous MDC clock */
-    reg = ENET_MAC_PHY_CTL;
-    reg &= ~ENET_MAC_PHY_CTL_CLR;
+        /* clear the previous MDC clock */
+        reg = ENET_MAC_PHY_CTL;
+        reg &= ~ENET_MAC_PHY_CTL_CLR;
 
-    /* get the HCLK frequency */
-    ahbclk = rcu_clock_freq_get(CK_AHB);
+        /* get the HCLK frequency */
+        ahbclk = rcu_clock_freq_get(CK_AHB);
 
-    /* configure MDC clock according to HCLK frequency range */
-    if(ENET_RANGE(ahbclk, 20000000U, 35000000U)) {
-        reg |= ENET_MDC_HCLK_DIV16;
-    } else if(ENET_RANGE(ahbclk, 35000000U, 60000000U)) {
-        reg |= ENET_MDC_HCLK_DIV26;
-    } else if(ENET_RANGE(ahbclk, 60000000U, 100000000U)) {
-        reg |= ENET_MDC_HCLK_DIV42;
-    } else if(ENET_RANGE(ahbclk, 100000000U, 150000000U)) {
-        reg |= ENET_MDC_HCLK_DIV62;
-    } else if((ENET_RANGE(ahbclk, 150000000U, 240000000U)) || (240000000U == ahbclk)) {
-        reg |= ENET_MDC_HCLK_DIV102;
-    } else {
+        /* configure MDC clock according to HCLK frequency range */
+        if (ENET_RANGE(ahbclk, 20000000U, 35000000U)) {
+                reg |= ENET_MDC_HCLK_DIV16;
+        } else if (ENET_RANGE(ahbclk, 35000000U, 60000000U)) {
+                reg |= ENET_MDC_HCLK_DIV26;
+        } else if (ENET_RANGE(ahbclk, 60000000U, 100000000U)) {
+                reg |= ENET_MDC_HCLK_DIV42;
+        } else if (ENET_RANGE(ahbclk, 100000000U, 150000000U)) {
+                reg |= ENET_MDC_HCLK_DIV62;
+        } else if ((ENET_RANGE(ahbclk, 150000000U, 240000000U)) || (240000000U == ahbclk)) {
+                reg |= ENET_MDC_HCLK_DIV102;
+        } else {
+                return enet_state;
+        }
+        ENET_MAC_PHY_CTL = reg;
+
+        /* reset PHY */
+        phy_value = PHY_RESET;
+        if (ERROR == (enet_phy_write_read(ENET_PHY_WRITE, PHY_ADDRESS, PHY_REG_BCR, &phy_value))) {
+                return enet_state;
+        }
+        /* PHY reset need some time */
+        _ENET_DELAY_(ENET_DELAY_TO);
+
+        /* check whether PHY reset is complete */
+        if (ERROR == (enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_REG_BCR, &phy_value))) {
+                return enet_state;
+        }
+
+        /* PHY reset complete */
+        if (RESET == (phy_value & PHY_RESET)) {
+                enet_state = SUCCESS;
+        }
+
         return enet_state;
-    }
-    ENET_MAC_PHY_CTL = reg;
-
-    /* reset PHY */
-    phy_value = PHY_RESET;
-    if(ERROR == (enet_phy_write_read(ENET_PHY_WRITE, PHY_ADDRESS, PHY_REG_BCR, &phy_value))) {
-        return enet_state;
-    }
-    /* PHY reset need some time */
-    _ENET_DELAY_(ENET_DELAY_TO);
-
-    /* check whether PHY reset is complete */
-    if(ERROR == (enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_REG_BCR, &phy_value))) {
-        return enet_state;
-    }
-
-    /* PHY reset complete */
-    if(RESET == (phy_value & PHY_RESET)) {
-        enet_state = SUCCESS;
-    }
-
-    return enet_state;
 }
 
 /*!
@@ -1592,40 +1602,43 @@ ErrStatus enet_phy_config(void)
     \param[out] pvalue: the value will be read from the PHY register in ENET_PHY_READ direction
     \retval     ErrStatus: SUCCESS or ERROR
 */
-ErrStatus enet_phy_write_read(enet_phydirection_enum direction, uint16_t phy_address, uint16_t phy_reg, uint16_t *pvalue)
+ErrStatus enet_phy_write_read(enet_phydirection_enum direction,
+                              uint16_t phy_address,
+                              uint16_t phy_reg,
+                              uint16_t *pvalue)
 {
-    uint32_t reg, phy_flag;
-    uint32_t timeout = 0U;
-    ErrStatus enet_state = ERROR;
+        uint32_t reg, phy_flag;
+        uint32_t timeout = 0U;
+        ErrStatus enet_state = ERROR;
 
-    /* configure ENET_MAC_PHY_CTL with write/read operation */
-    reg = ENET_MAC_PHY_CTL;
-    reg &= ~(ENET_MAC_PHY_CTL_PB | ENET_MAC_PHY_CTL_PW | ENET_MAC_PHY_CTL_PR | ENET_MAC_PHY_CTL_PA);
-    reg |= (direction | MAC_PHY_CTL_PR(phy_reg) | MAC_PHY_CTL_PA(phy_address) | ENET_MAC_PHY_CTL_PB);
+        /* configure ENET_MAC_PHY_CTL with write/read operation */
+        reg = ENET_MAC_PHY_CTL;
+        reg &= ~(ENET_MAC_PHY_CTL_PB | ENET_MAC_PHY_CTL_PW | ENET_MAC_PHY_CTL_PR | ENET_MAC_PHY_CTL_PA);
+        reg |= (direction | MAC_PHY_CTL_PR(phy_reg) | MAC_PHY_CTL_PA(phy_address) | ENET_MAC_PHY_CTL_PB);
 
-    /* if do the write operation, write value to the register */
-    if(ENET_PHY_WRITE == direction) {
-        ENET_MAC_PHY_DATA = *pvalue;
-    }
+        /* if do the write operation, write value to the register */
+        if (ENET_PHY_WRITE == direction) {
+                ENET_MAC_PHY_DATA = *pvalue;
+        }
 
-    /* do PHY write/read operation, and wait the operation complete  */
-    ENET_MAC_PHY_CTL = reg;
-    do {
-        phy_flag = (ENET_MAC_PHY_CTL & ENET_MAC_PHY_CTL_PB);
-        timeout++;
-    } while((RESET != phy_flag) && (ENET_DELAY_TO != timeout));
+        /* do PHY write/read operation, and wait the operation complete  */
+        ENET_MAC_PHY_CTL = reg;
+        do {
+                phy_flag = (ENET_MAC_PHY_CTL & ENET_MAC_PHY_CTL_PB);
+                timeout++;
+        } while ((RESET != phy_flag) && (ENET_DELAY_TO != timeout));
 
-    /* write/read operation complete */
-    if(RESET == (ENET_MAC_PHY_CTL & ENET_MAC_PHY_CTL_PB)) {
-        enet_state = SUCCESS;
-    }
+        /* write/read operation complete */
+        if (RESET == (ENET_MAC_PHY_CTL & ENET_MAC_PHY_CTL_PB)) {
+                enet_state = SUCCESS;
+        }
 
-    /* if do the read operation, get value from the register */
-    if(ENET_PHY_READ == direction) {
-        *pvalue = (uint16_t)ENET_MAC_PHY_DATA;
-    }
+        /* if do the read operation, get value from the register */
+        if (ENET_PHY_READ == direction) {
+                *pvalue = (uint16_t) ENET_MAC_PHY_DATA;
+        }
 
-    return enet_state;
+        return enet_state;
 }
 
 /*!
@@ -1636,19 +1649,19 @@ ErrStatus enet_phy_write_read(enet_phydirection_enum direction, uint16_t phy_add
 */
 ErrStatus enet_phyloopback_enable(void)
 {
-    uint16_t temp_phy = 0U;
-    ErrStatus phy_state = ERROR;
+        uint16_t temp_phy = 0U;
+        ErrStatus phy_state = ERROR;
 
-    /* get the PHY configuration to update it */
-    enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_REG_BCR, &temp_phy);
+        /* get the PHY configuration to update it */
+        enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_REG_BCR, &temp_phy);
 
-    /* enable the PHY loopback mode */
-    temp_phy |= PHY_LOOPBACK;
+        /* enable the PHY loopback mode */
+        temp_phy |= PHY_LOOPBACK;
 
-    /* update the PHY control register with the new configuration */
-    phy_state = enet_phy_write_read(ENET_PHY_WRITE, PHY_ADDRESS, PHY_REG_BCR, &temp_phy);
+        /* update the PHY control register with the new configuration */
+        phy_state = enet_phy_write_read(ENET_PHY_WRITE, PHY_ADDRESS, PHY_REG_BCR, &temp_phy);
 
-    return phy_state;
+        return phy_state;
 }
 
 /*!
@@ -1659,19 +1672,19 @@ ErrStatus enet_phyloopback_enable(void)
 */
 ErrStatus enet_phyloopback_disable(void)
 {
-    uint16_t temp_phy = 0U;
-    ErrStatus phy_state = ERROR;
+        uint16_t temp_phy = 0U;
+        ErrStatus phy_state = ERROR;
 
-    /* get the PHY configuration to update it */
-    enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_REG_BCR, &temp_phy);
+        /* get the PHY configuration to update it */
+        enet_phy_write_read(ENET_PHY_READ, PHY_ADDRESS, PHY_REG_BCR, &temp_phy);
 
-    /* disable the PHY loopback mode */
-    temp_phy &= (uint16_t)~PHY_LOOPBACK;
+        /* disable the PHY loopback mode */
+        temp_phy &= (uint16_t) ~PHY_LOOPBACK;
 
-    /* update the PHY control register with the new configuration */
-    phy_state = enet_phy_write_read(ENET_PHY_WRITE, PHY_ADDRESS, PHY_REG_BCR, &temp_phy);
+        /* update the PHY control register with the new configuration */
+        phy_state = enet_phy_write_read(ENET_PHY_WRITE, PHY_ADDRESS, PHY_REG_BCR, &temp_phy);
 
-    return phy_state;
+        return phy_state;
 }
 
 /*!
@@ -1687,13 +1700,13 @@ ErrStatus enet_phyloopback_disable(void)
 */
 void enet_forward_feature_enable(uint32_t feature)
 {
-    uint32_t mask;
+        uint32_t mask;
 
-    mask = (feature & (~(ENET_FORWARD_ERRFRAMES | ENET_FORWARD_UNDERSZ_GOODFRAMES)));
-    ENET_MAC_CFG |= mask;
+        mask = (feature & (~(ENET_FORWARD_ERRFRAMES | ENET_FORWARD_UNDERSZ_GOODFRAMES)));
+        ENET_MAC_CFG |= mask;
 
-    mask = (feature & (~(ENET_AUTO_PADCRC_DROP | ENET_TYPEFRAME_CRC_DROP)));
-    ENET_DMA_CTL |= (mask >> 2);
+        mask = (feature & (~(ENET_AUTO_PADCRC_DROP | ENET_TYPEFRAME_CRC_DROP)));
+        ENET_DMA_CTL |= (mask >> 2);
 }
 
 /*!
@@ -1709,13 +1722,13 @@ void enet_forward_feature_enable(uint32_t feature)
 */
 void enet_forward_feature_disable(uint32_t feature)
 {
-    uint32_t mask;
+        uint32_t mask;
 
-    mask = (feature & (~(ENET_FORWARD_ERRFRAMES | ENET_FORWARD_UNDERSZ_GOODFRAMES)));
-    ENET_MAC_CFG &= ~mask;
+        mask = (feature & (~(ENET_FORWARD_ERRFRAMES | ENET_FORWARD_UNDERSZ_GOODFRAMES)));
+        ENET_MAC_CFG &= ~mask;
 
-    mask = (feature & (~(ENET_AUTO_PADCRC_DROP | ENET_TYPEFRAME_CRC_DROP)));
-    ENET_DMA_CTL &= ~(mask >> 2);
+        mask = (feature & (~(ENET_AUTO_PADCRC_DROP | ENET_TYPEFRAME_CRC_DROP)));
+        ENET_DMA_CTL &= ~(mask >> 2);
 }
 
 /*!
@@ -1734,7 +1747,7 @@ void enet_forward_feature_disable(uint32_t feature)
 */
 void enet_fliter_feature_enable(uint32_t feature)
 {
-    ENET_MAC_FRMF |= feature;
+        ENET_MAC_FRMF |= feature;
 }
 
 /*!
@@ -1753,7 +1766,7 @@ void enet_fliter_feature_enable(uint32_t feature)
 */
 void enet_fliter_feature_disable(uint32_t feature)
 {
-    ENET_MAC_FRMF &= ~feature;
+        ENET_MAC_FRMF &= ~feature;
 }
 
 /*!
@@ -1765,16 +1778,16 @@ void enet_fliter_feature_disable(uint32_t feature)
 */
 ErrStatus enet_pauseframe_generate(void)
 {
-    ErrStatus enet_state = ERROR;
-    uint32_t temp = 0U;
+        ErrStatus enet_state = ERROR;
+        uint32_t temp = 0U;
 
-    /* in full-duplex mode, must make sure this bit is 0 before writing register */
-    temp = ENET_MAC_FCTL & ENET_MAC_FCTL_FLCBBKPA;
-    if(RESET == temp) {
-        ENET_MAC_FCTL |= ENET_MAC_FCTL_FLCBBKPA;
-        enet_state = SUCCESS;
-    }
-    return enet_state;
+        /* in full-duplex mode, must make sure this bit is 0 before writing register */
+        temp = ENET_MAC_FCTL & ENET_MAC_FCTL_FLCBBKPA;
+        if (RESET == temp) {
+                ENET_MAC_FCTL |= ENET_MAC_FCTL_FLCBBKPA;
+                enet_state = SUCCESS;
+        }
+        return enet_state;
 }
 
 /*!
@@ -1790,8 +1803,8 @@ ErrStatus enet_pauseframe_generate(void)
 */
 void enet_pauseframe_detect_config(uint32_t detect)
 {
-    ENET_MAC_FCTL &= ~ENET_MAC_FCTL_UPFDT;
-    ENET_MAC_FCTL |= detect;
+        ENET_MAC_FCTL &= ~ENET_MAC_FCTL_UPFDT;
+        ENET_MAC_FCTL |= detect;
 }
 
 /*!
@@ -1809,8 +1822,8 @@ void enet_pauseframe_detect_config(uint32_t detect)
 */
 void enet_pauseframe_config(uint32_t pausetime, uint32_t pause_threshold)
 {
-    ENET_MAC_FCTL &= ~(ENET_MAC_FCTL_PTM | ENET_MAC_FCTL_PLTS);
-    ENET_MAC_FCTL |= (MAC_FCTL_PTM(pausetime) | pause_threshold);
+        ENET_MAC_FCTL &= ~(ENET_MAC_FCTL_PTM | ENET_MAC_FCTL_PLTS);
+        ENET_MAC_FCTL |= (MAC_FCTL_PTM(pausetime) | pause_threshold);
 }
 
 /*!
@@ -1839,7 +1852,7 @@ void enet_pauseframe_config(uint32_t pausetime, uint32_t pause_threshold)
 */
 void enet_flowcontrol_threshold_config(uint32_t deactive, uint32_t active)
 {
-    ENET_MAC_FCTH = ((deactive | active) >> 8);
+        ENET_MAC_FCTH = ((deactive | active) >> 8);
 }
 
 /*!
@@ -1855,11 +1868,11 @@ void enet_flowcontrol_threshold_config(uint32_t deactive, uint32_t active)
 */
 void enet_flowcontrol_feature_enable(uint32_t feature)
 {
-    if(RESET != (feature & ENET_ZERO_QUANTA_PAUSE)) {
-        ENET_MAC_FCTL &= ~ENET_ZERO_QUANTA_PAUSE;
-    }
-    feature &= ~ENET_ZERO_QUANTA_PAUSE;
-    ENET_MAC_FCTL |= feature;
+        if (RESET != (feature & ENET_ZERO_QUANTA_PAUSE)) {
+                ENET_MAC_FCTL &= ~ENET_ZERO_QUANTA_PAUSE;
+        }
+        feature &= ~ENET_ZERO_QUANTA_PAUSE;
+        ENET_MAC_FCTL |= feature;
 }
 
 /*!
@@ -1875,11 +1888,11 @@ void enet_flowcontrol_feature_enable(uint32_t feature)
 */
 void enet_flowcontrol_feature_disable(uint32_t feature)
 {
-    if(RESET != (feature & ENET_ZERO_QUANTA_PAUSE)) {
-        ENET_MAC_FCTL |= ENET_ZERO_QUANTA_PAUSE;
-    }
-    feature &= ~ENET_ZERO_QUANTA_PAUSE;
-    ENET_MAC_FCTL &= ~feature;
+        if (RESET != (feature & ENET_ZERO_QUANTA_PAUSE)) {
+                ENET_MAC_FCTL |= ENET_ZERO_QUANTA_PAUSE;
+        }
+        feature &= ~ENET_ZERO_QUANTA_PAUSE;
+        ENET_MAC_FCTL &= ~feature;
 }
 
 /*!
@@ -1897,9 +1910,9 @@ void enet_flowcontrol_feature_disable(uint32_t feature)
 */
 uint32_t enet_dmaprocess_state_get(enet_dmadirection_enum direction)
 {
-    uint32_t reval;
-    reval = (uint32_t)(ENET_DMA_STAT & (uint32_t)direction);
-    return reval;
+        uint32_t reval;
+        reval = (uint32_t) (ENET_DMA_STAT & (uint32_t) direction);
+        return reval;
 }
 
 /*!
@@ -1914,11 +1927,11 @@ uint32_t enet_dmaprocess_state_get(enet_dmadirection_enum direction)
 */
 void enet_dmaprocess_resume(enet_dmadirection_enum direction)
 {
-    if(ENET_DMA_TX == direction) {
-        ENET_DMA_TPEN = 0U;
-    } else {
-        ENET_DMA_RPEN = 0U;
-    }
+        if (ENET_DMA_TX == direction) {
+                ENET_DMA_TPEN = 0U;
+        } else {
+                ENET_DMA_RPEN = 0U;
+        }
 }
 
 /*!
@@ -1929,18 +1942,18 @@ void enet_dmaprocess_resume(enet_dmadirection_enum direction)
 */
 void enet_rxprocess_check_recovery(void)
 {
-    uint32_t status;
+        uint32_t status;
 
-    /* get DAV information of current RxDMA descriptor */
-    status = dma_current_rxdesc->status;
-    status &= ENET_RDES0_DAV;
+        /* get DAV information of current RxDMA descriptor */
+        status = dma_current_rxdesc->status;
+        status &= ENET_RDES0_DAV;
 
-    /* if current descriptor is owned by DMA, but the descriptor address mismatches with
-    receive descriptor address pointer updated by RxDMA controller */
-    if((ENET_DMA_CRDADDR != ((uint32_t)dma_current_rxdesc)) &&
-            (ENET_RDES0_DAV == status)) {
-        dma_current_rxdesc = (enet_descriptors_struct *)ENET_DMA_CRDADDR;
-    }
+        /* if current descriptor is owned by DMA, but the descriptor address mismatches with
+        receive descriptor address pointer updated by RxDMA controller */
+        if ((ENET_DMA_CRDADDR != ((uint32_t) dma_current_rxdesc)) &&
+                (ENET_RDES0_DAV == status)) {
+                dma_current_rxdesc = (enet_descriptors_struct *) ENET_DMA_CRDADDR;
+        }
 }
 
 /*!
@@ -1951,23 +1964,23 @@ void enet_rxprocess_check_recovery(void)
 */
 ErrStatus enet_txfifo_flush(void)
 {
-    uint32_t flush_state;
-    uint32_t timeout = 0U;
-    ErrStatus enet_state = ERROR;
+        uint32_t flush_state;
+        uint32_t timeout = 0U;
+        ErrStatus enet_state = ERROR;
 
-    /* set the FTF bit for flushing transmit FIFO */
-    ENET_DMA_CTL |= ENET_DMA_CTL_FTF;
-    /* wait until the flush operation completes */
-    do {
-        flush_state = ENET_DMA_CTL & ENET_DMA_CTL_FTF;
-        timeout++;
-    } while((RESET != flush_state) && (timeout < ENET_DELAY_TO));
-    /* return ERROR due to timeout */
-    if(RESET == flush_state) {
-        enet_state = SUCCESS;
-    }
+        /* set the FTF bit for flushing transmit FIFO */
+        ENET_DMA_CTL |= ENET_DMA_CTL_FTF;
+        /* wait until the flush operation completes */
+        do {
+                flush_state = ENET_DMA_CTL & ENET_DMA_CTL_FTF;
+                timeout++;
+        } while ((RESET != flush_state) && (timeout < ENET_DELAY_TO));
+        /* return ERROR due to timeout */
+        if (RESET == flush_state) {
+                enet_state = SUCCESS;
+        }
 
-    return  enet_state;
+        return enet_state;
 }
 
 /*!
@@ -1987,10 +2000,10 @@ ErrStatus enet_txfifo_flush(void)
 */
 uint32_t enet_current_desc_address_get(enet_desc_reg_enum addr_get)
 {
-    uint32_t reval = 0U;
+        uint32_t reval = 0U;
 
-    reval = REG32((ENET) + (uint32_t)addr_get);
-    return reval;
+        reval = REG32((ENET) + (uint32_t) addr_get);
+        return reval;
 }
 
 /*!
@@ -2009,42 +2022,43 @@ uint32_t enet_current_desc_address_get(enet_desc_reg_enum addr_get)
 */
 uint32_t enet_desc_information_get(enet_descriptors_struct *desc, enet_descstate_enum info_get)
 {
-    uint32_t reval = 0xFFFFFFFFU;
+        uint32_t reval = 0xFFFFFFFFU;
 
-    switch(info_get) {
-    case RXDESC_BUFFER_1_SIZE:
-        reval = GET_RDES1_RB1S(desc->control_buffer_size);
-        break;
-    case RXDESC_BUFFER_2_SIZE:
-        reval = GET_RDES1_RB2S(desc->control_buffer_size);
-        break;
-    case RXDESC_FRAME_LENGTH:
-        reval = GET_RDES0_FRML(desc->status);
-        if(reval > 4U) {
-            reval = reval - 4U;
+        switch (info_get) {
+        case RXDESC_BUFFER_1_SIZE:
+                reval = GET_RDES1_RB1S(desc->control_buffer_size);
+                break;
+        case RXDESC_BUFFER_2_SIZE:
+                reval = GET_RDES1_RB2S(desc->control_buffer_size);
+                break;
+        case RXDESC_FRAME_LENGTH:
+                reval = GET_RDES0_FRML(desc->status);
+                if (reval > 4U) {
+                        reval = reval - 4U;
 
-            /* if is a type frame, and CRC is not included in forwarding frame */
-            if((RESET != (ENET_MAC_CFG & ENET_MAC_CFG_TFCD)) && (RESET != (desc->status & ENET_RDES0_FRMT))) {
-                reval = reval + 4U;
-            }
-        } else {
-            reval = 0U;
+                        /* if is a type frame, and CRC is not included in forwarding frame */
+                        if ((RESET != (ENET_MAC_CFG & ENET_MAC_CFG_TFCD))
+                                && (RESET != (desc->status & ENET_RDES0_FRMT))) {
+                                reval = reval + 4U;
+                        }
+                } else {
+                        reval = 0U;
+                }
+
+                break;
+        case RXDESC_BUFFER_1_ADDR:
+                reval = desc->buffer1_addr;
+                break;
+        case TXDESC_BUFFER_1_ADDR:
+                reval = desc->buffer1_addr;
+                break;
+        case TXDESC_COLLISION_COUNT:
+                reval = GET_TDES0_COCNT(desc->status);
+                break;
+        default:
+                break;
         }
-
-        break;
-    case RXDESC_BUFFER_1_ADDR:
-        reval = desc->buffer1_addr;
-        break;
-    case TXDESC_BUFFER_1_ADDR:
-        reval = desc->buffer1_addr;
-        break;
-    case TXDESC_COLLISION_COUNT:
-        reval = GET_TDES0_COCNT(desc->status);
-        break;
-    default:
-        break;
-    }
-    return reval;
+        return reval;
 }
 
 /*!
@@ -2056,11 +2070,11 @@ uint32_t enet_desc_information_get(enet_descriptors_struct *desc, enet_descstate
 */
 void enet_missed_frame_counter_get(uint32_t *rxfifo_drop, uint32_t *rxdma_drop)
 {
-    uint32_t temp_counter = 0U;
+        uint32_t temp_counter = 0U;
 
-    temp_counter = ENET_DMA_MFBOCNT;
-    *rxfifo_drop = GET_DMA_MFBOCNT_MSFA(temp_counter);
-    *rxdma_drop = GET_DMA_MFBOCNT_MSFC(temp_counter);
+        temp_counter = ENET_DMA_MFBOCNT;
+        *rxfifo_drop = GET_DMA_MFBOCNT_MSFA(temp_counter);
+        *rxdma_drop = GET_DMA_MFBOCNT_MSFC(temp_counter);
 }
 
 /*!
@@ -2117,13 +2131,13 @@ void enet_missed_frame_counter_get(uint32_t *rxfifo_drop, uint32_t *rxdma_drop)
 */
 FlagStatus enet_desc_flag_get(enet_descriptors_struct *desc, uint32_t desc_flag)
 {
-    FlagStatus enet_flag = RESET;
+        FlagStatus enet_flag = RESET;
 
-    if((uint32_t)RESET != (desc->status & desc_flag)) {
-        enet_flag = SET;
-    }
+        if ((uint32_t) RESET != (desc->status & desc_flag)) {
+                enet_flag = SET;
+        }
 
-    return enet_flag;
+        return enet_flag;
 }
 
 /*!
@@ -2148,7 +2162,7 @@ FlagStatus enet_desc_flag_get(enet_descriptors_struct *desc, uint32_t desc_flag)
 */
 void enet_desc_flag_set(enet_descriptors_struct *desc, uint32_t desc_flag)
 {
-    desc->status |= desc_flag;
+        desc->status |= desc_flag;
 }
 
 /*!
@@ -2173,7 +2187,7 @@ void enet_desc_flag_set(enet_descriptors_struct *desc, uint32_t desc_flag)
 */
 void enet_desc_flag_clear(enet_descriptors_struct *desc, uint32_t desc_flag)
 {
-    desc->status &= ~desc_flag;
+        desc->status &= ~desc_flag;
 }
 
 /*!
@@ -2184,7 +2198,7 @@ void enet_desc_flag_clear(enet_descriptors_struct *desc, uint32_t desc_flag)
 */
 void enet_rx_desc_immediate_receive_complete_interrupt(enet_descriptors_struct *desc)
 {
-    desc->control_buffer_size &= ~ENET_RDES1_DINTC;
+        desc->control_buffer_size &= ~ENET_RDES1_DINTC;
 }
 
 /*!
@@ -2196,8 +2210,8 @@ void enet_rx_desc_immediate_receive_complete_interrupt(enet_descriptors_struct *
 */
 void enet_rx_desc_delay_receive_complete_interrupt(enet_descriptors_struct *desc, uint32_t delay_time)
 {
-    desc->control_buffer_size |= ENET_RDES1_DINTC;
-    ENET_DMA_RSWDC = DMA_RSWDC_WDCFRS(delay_time);
+        desc->control_buffer_size |= ENET_RDES1_DINTC;
+        ENET_DMA_RSWDC = DMA_RSWDC_WDCFRS(delay_time);
 }
 
 /*!
@@ -2208,41 +2222,43 @@ void enet_rx_desc_delay_receive_complete_interrupt(enet_descriptors_struct *desc
 */
 void enet_rxframe_drop(void)
 {
-    /* enable reception, descriptor is owned by DMA */
-    dma_current_rxdesc->status = ENET_RDES0_DAV;
+        /* enable reception, descriptor is owned by DMA */
+        dma_current_rxdesc->status = ENET_RDES0_DAV;
 
-    /* chained mode */
-    if((uint32_t)RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RCHM)) {
-        if(NULL != dma_current_ptp_rxdesc) {
-            dma_current_rxdesc = (enet_descriptors_struct *)(dma_current_ptp_rxdesc->buffer2_next_desc_addr);
-            /* if it is the last ptp descriptor */
-            if(0U != dma_current_ptp_rxdesc->status) {
-                /* pointer back to the first ptp descriptor address in the desc_ptptab list address */
-                dma_current_ptp_rxdesc = (enet_descriptors_struct *)(dma_current_ptp_rxdesc->status);
-            } else {
-                /* ponter to the next ptp descriptor */
-                dma_current_ptp_rxdesc++;
-            }
-        } else {
-            dma_current_rxdesc = (enet_descriptors_struct *)(dma_current_rxdesc->buffer2_next_desc_addr);
-        }
+        /* chained mode */
+        if ((uint32_t) RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RCHM)) {
+                if (NULL != dma_current_ptp_rxdesc) {
+                        dma_current_rxdesc =
+                                (enet_descriptors_struct *) (dma_current_ptp_rxdesc->buffer2_next_desc_addr);
+                        /* if it is the last ptp descriptor */
+                        if (0U != dma_current_ptp_rxdesc->status) {
+                                /* pointer back to the first ptp descriptor address in the desc_ptptab list address */
+                                dma_current_ptp_rxdesc = (enet_descriptors_struct *) (dma_current_ptp_rxdesc->status);
+                        } else {
+                                /* ponter to the next ptp descriptor */
+                                dma_current_ptp_rxdesc++;
+                        }
+                } else {
+                        dma_current_rxdesc = (enet_descriptors_struct *) (dma_current_rxdesc->buffer2_next_desc_addr);
+                }
 
-    } else {
-        /* ring mode */
-        if((uint32_t)RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RERM)) {
-            /* if is the last descriptor in table, the next descriptor is the table header */
-            dma_current_rxdesc = (enet_descriptors_struct *)(ENET_DMA_RDTADDR);
-            if(NULL != dma_current_ptp_rxdesc) {
-                dma_current_ptp_rxdesc = (enet_descriptors_struct *)(dma_current_ptp_rxdesc->status);
-            }
         } else {
-            /* the next descriptor is the current address, add the descriptor size, and descriptor skip length */
-            dma_current_rxdesc = (enet_descriptors_struct *)(uint32_t)((uint32_t)dma_current_rxdesc + ETH_DMARXDESC_SIZE + GET_DMA_BCTL_DPSL(ENET_DMA_BCTL));
-            if(NULL != dma_current_ptp_rxdesc) {
-                dma_current_ptp_rxdesc++;
-            }
+                /* ring mode */
+                if ((uint32_t) RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RERM)) {
+                        /* if is the last descriptor in table, the next descriptor is the table header */
+                        dma_current_rxdesc = (enet_descriptors_struct *) (ENET_DMA_RDTADDR);
+                        if (NULL != dma_current_ptp_rxdesc) {
+                                dma_current_ptp_rxdesc = (enet_descriptors_struct *) (dma_current_ptp_rxdesc->status);
+                        }
+                } else {
+                        /* the next descriptor is the current address, add the descriptor size, and descriptor skip length */
+                        dma_current_rxdesc = (enet_descriptors_struct *) (uint32_t) ((uint32_t) dma_current_rxdesc
+                                + ETH_DMARXDESC_SIZE + GET_DMA_BCTL_DPSL(ENET_DMA_BCTL));
+                        if (NULL != dma_current_ptp_rxdesc) {
+                                dma_current_ptp_rxdesc++;
+                        }
+                }
         }
-    }
 }
 
 /*!
@@ -2256,7 +2272,7 @@ void enet_rxframe_drop(void)
 */
 void enet_dma_feature_enable(uint32_t feature)
 {
-    ENET_DMA_CTL |= feature;
+        ENET_DMA_CTL |= feature;
 }
 
 /*!
@@ -2270,7 +2286,7 @@ void enet_dma_feature_enable(uint32_t feature)
 */
 void enet_dma_feature_disable(uint32_t feature)
 {
-    ENET_DMA_CTL &= ~feature;
+        ENET_DMA_CTL &= ~feature;
 }
 
 #ifdef SELECT_DESCRIPTORS_ENHANCED_MODE
@@ -2667,7 +2683,7 @@ ErrStatus enet_ptpframe_transmit_enhanced_mode(uint8_t *buffer, uint32_t length,
 */
 void enet_desc_select_normal_mode(void)
 {
-    ENET_DMA_BCTL &= ~ENET_DMA_BCTL_DFM;
+        ENET_DMA_BCTL &= ~ENET_DMA_BCTL_DFM;
 }
 
 /*!
@@ -2682,71 +2698,71 @@ void enet_desc_select_normal_mode(void)
 */
 void enet_ptp_normal_descriptors_chain_init(enet_dmadirection_enum direction, enet_descriptors_struct *desc_ptptab)
 {
-    uint32_t num = 0U, count = 0U, maxsize = 0U;
-    uint32_t desc_status = 0U, desc_bufsize = 0U;
-    enet_descriptors_struct *desc, *desc_tab;
-    uint8_t *buf;
+        uint32_t num = 0U, count = 0U, maxsize = 0U;
+        uint32_t desc_status = 0U, desc_bufsize = 0U;
+        enet_descriptors_struct *desc, *desc_tab;
+        uint8_t *buf;
 
-    /* if want to initialize DMA Tx descriptors */
-    if(ENET_DMA_TX == direction) {
-        /* save a copy of the DMA Tx descriptors */
-        desc_tab = txdesc_tab;
-        buf = &tx_buff[0][0];
-        count = ENET_TXBUF_NUM;
-        maxsize = ENET_TXBUF_SIZE;
+        /* if want to initialize DMA Tx descriptors */
+        if (ENET_DMA_TX == direction) {
+                /* save a copy of the DMA Tx descriptors */
+                desc_tab = txdesc_tab;
+                buf = &tx_buff[0][0];
+                count = ENET_TXBUF_NUM;
+                maxsize = ENET_TXBUF_SIZE;
 
-        /* select chain mode, and enable transmit timestamp function */
-        desc_status = ENET_TDES0_TCHM | ENET_TDES0_TTSEN;
+                /* select chain mode, and enable transmit timestamp function */
+                desc_status = ENET_TDES0_TCHM | ENET_TDES0_TTSEN;
 
-        /* configure DMA Tx descriptor table address register */
-        ENET_DMA_TDTADDR = (uint32_t)desc_tab;
-        dma_current_txdesc = desc_tab;
-        dma_current_ptp_txdesc = desc_ptptab;
-    } else {
-        /* if want to initialize DMA Rx descriptors */
-        /* save a copy of the DMA Rx descriptors */
-        desc_tab = rxdesc_tab;
-        buf = &rx_buff[0][0];
-        count = ENET_RXBUF_NUM;
-        maxsize = ENET_RXBUF_SIZE;
-
-        /* enable receiving */
-        desc_status = ENET_RDES0_DAV;
-        /* select receive chained mode and set buffer1 size */
-        desc_bufsize = ENET_RDES1_RCHM | (uint32_t)ENET_RXBUF_SIZE;
-
-        /* configure DMA Rx descriptor table address register */
-        ENET_DMA_RDTADDR = (uint32_t)desc_tab;
-        dma_current_rxdesc = desc_tab;
-        dma_current_ptp_rxdesc = desc_ptptab;
-    }
-
-    /* configure each descriptor */
-    for(num = 0U; num < count; num++) {
-        /* get the pointer to the next descriptor of the descriptor table */
-        desc = desc_tab + num;
-
-        /* configure descriptors */
-        desc->status = desc_status;
-        desc->control_buffer_size = desc_bufsize;
-        desc->buffer1_addr = (uint32_t)(&buf[num * maxsize]);
-
-        /* if is not the last descriptor */
-        if(num < (count - 1U)) {
-            /* configure the next descriptor address */
-            desc->buffer2_next_desc_addr = (uint32_t)(desc_tab + num + 1U);
+                /* configure DMA Tx descriptor table address register */
+                ENET_DMA_TDTADDR = (uint32_t) desc_tab;
+                dma_current_txdesc = desc_tab;
+                dma_current_ptp_txdesc = desc_ptptab;
         } else {
-            /* when it is the last descriptor, the next descriptor address
-            equals to first descriptor address in descriptor table */
-            desc->buffer2_next_desc_addr = (uint32_t)desc_tab;
+                /* if want to initialize DMA Rx descriptors */
+                /* save a copy of the DMA Rx descriptors */
+                desc_tab = rxdesc_tab;
+                buf = &rx_buff[0][0];
+                count = ENET_RXBUF_NUM;
+                maxsize = ENET_RXBUF_SIZE;
+
+                /* enable receiving */
+                desc_status = ENET_RDES0_DAV;
+                /* select receive chained mode and set buffer1 size */
+                desc_bufsize = ENET_RDES1_RCHM | (uint32_t) ENET_RXBUF_SIZE;
+
+                /* configure DMA Rx descriptor table address register */
+                ENET_DMA_RDTADDR = (uint32_t) desc_tab;
+                dma_current_rxdesc = desc_tab;
+                dma_current_ptp_rxdesc = desc_ptptab;
         }
-        /* set desc_ptptab equal to desc_tab */
-        (&desc_ptptab[num])->buffer1_addr = desc->buffer1_addr;
-        (&desc_ptptab[num])->buffer2_next_desc_addr = desc->buffer2_next_desc_addr;
-    }
-    /* when it is the last ptp descriptor, preserve the first descriptor
-    address of desc_ptptab in ptp descriptor status */
-    (&desc_ptptab[num - 1U])->status = (uint32_t)desc_ptptab;
+
+        /* configure each descriptor */
+        for (num = 0U; num < count; num++) {
+                /* get the pointer to the next descriptor of the descriptor table */
+                desc = desc_tab + num;
+
+                /* configure descriptors */
+                desc->status = desc_status;
+                desc->control_buffer_size = desc_bufsize;
+                desc->buffer1_addr = (uint32_t) (&buf[num * maxsize]);
+
+                /* if is not the last descriptor */
+                if (num < (count - 1U)) {
+                        /* configure the next descriptor address */
+                        desc->buffer2_next_desc_addr = (uint32_t) (desc_tab + num + 1U);
+                } else {
+                        /* when it is the last descriptor, the next descriptor address
+                        equals to first descriptor address in descriptor table */
+                        desc->buffer2_next_desc_addr = (uint32_t) desc_tab;
+                }
+                /* set desc_ptptab equal to desc_tab */
+                (&desc_ptptab[num])->buffer1_addr = desc->buffer1_addr;
+                (&desc_ptptab[num])->buffer2_next_desc_addr = desc->buffer2_next_desc_addr;
+        }
+        /* when it is the last ptp descriptor, preserve the first descriptor
+        address of desc_ptptab in ptp descriptor status */
+        (&desc_ptptab[num - 1U])->status = (uint32_t) desc_ptptab;
 }
 
 /*!
@@ -2761,76 +2777,76 @@ void enet_ptp_normal_descriptors_chain_init(enet_dmadirection_enum direction, en
 */
 void enet_ptp_normal_descriptors_ring_init(enet_dmadirection_enum direction, enet_descriptors_struct *desc_ptptab)
 {
-    uint32_t num = 0U, count = 0U, maxsize = 0U;
-    uint32_t desc_status = 0U, desc_bufsize = 0U;
-    enet_descriptors_struct *desc, *desc_tab;
-    uint8_t *buf;
+        uint32_t num = 0U, count = 0U, maxsize = 0U;
+        uint32_t desc_status = 0U, desc_bufsize = 0U;
+        enet_descriptors_struct *desc, *desc_tab;
+        uint8_t *buf;
 
-    /* configure descriptor skip length */
-    ENET_DMA_BCTL &= ~ENET_DMA_BCTL_DPSL;
-    ENET_DMA_BCTL |= DMA_BCTL_DPSL(0);
+        /* configure descriptor skip length */
+        ENET_DMA_BCTL &= ~ENET_DMA_BCTL_DPSL;
+        ENET_DMA_BCTL |= DMA_BCTL_DPSL(0);
 
-    /* if want to initialize DMA Tx descriptors */
-    if(ENET_DMA_TX == direction) {
-        /* save a copy of the DMA Tx descriptors */
-        desc_tab = txdesc_tab;
-        buf = &tx_buff[0][0];
-        count = ENET_TXBUF_NUM;
-        maxsize = ENET_TXBUF_SIZE;
+        /* if want to initialize DMA Tx descriptors */
+        if (ENET_DMA_TX == direction) {
+                /* save a copy of the DMA Tx descriptors */
+                desc_tab = txdesc_tab;
+                buf = &tx_buff[0][0];
+                count = ENET_TXBUF_NUM;
+                maxsize = ENET_TXBUF_SIZE;
 
-        /* select ring mode, and enable transmit timestamp function */
-        desc_status = ENET_TDES0_TTSEN;
+                /* select ring mode, and enable transmit timestamp function */
+                desc_status = ENET_TDES0_TTSEN;
 
-        /* configure DMA Tx descriptor table address register */
-        ENET_DMA_TDTADDR = (uint32_t)desc_tab;
-        dma_current_txdesc = desc_tab;
-        dma_current_ptp_txdesc = desc_ptptab;
-    } else {
-        /* if want to initialize DMA Rx descriptors */
-        /* save a copy of the DMA Rx descriptors */
-        desc_tab = rxdesc_tab;
-        buf = &rx_buff[0][0];
-        count = ENET_RXBUF_NUM;
-        maxsize = ENET_RXBUF_SIZE;
+                /* configure DMA Tx descriptor table address register */
+                ENET_DMA_TDTADDR = (uint32_t) desc_tab;
+                dma_current_txdesc = desc_tab;
+                dma_current_ptp_txdesc = desc_ptptab;
+        } else {
+                /* if want to initialize DMA Rx descriptors */
+                /* save a copy of the DMA Rx descriptors */
+                desc_tab = rxdesc_tab;
+                buf = &rx_buff[0][0];
+                count = ENET_RXBUF_NUM;
+                maxsize = ENET_RXBUF_SIZE;
 
-        /* enable receiving */
-        desc_status = ENET_RDES0_DAV;
-        /* select receive ring mode and set buffer1 size */
-        desc_bufsize = (uint32_t)ENET_RXBUF_SIZE;
+                /* enable receiving */
+                desc_status = ENET_RDES0_DAV;
+                /* select receive ring mode and set buffer1 size */
+                desc_bufsize = (uint32_t) ENET_RXBUF_SIZE;
 
-        /* configure DMA Rx descriptor table address register */
-        ENET_DMA_RDTADDR = (uint32_t)desc_tab;
-        dma_current_rxdesc = desc_tab;
-        dma_current_ptp_rxdesc = desc_ptptab;
-    }
-
-    /* configure each descriptor */
-    for(num = 0U; num < count; num++) {
-        /* get the pointer to the next descriptor of the descriptor table */
-        desc = desc_tab + num;
-
-        /* configure descriptors */
-        desc->status = desc_status;
-        desc->control_buffer_size = desc_bufsize;
-        desc->buffer1_addr = (uint32_t)(&buf[num * maxsize]);
-
-        /* when it is the last descriptor */
-        if(num == (count - 1U)) {
-            if(ENET_DMA_TX == direction) {
-                /* configure transmit end of ring mode */
-                desc->status |= ENET_TDES0_TERM;
-            } else {
-                /* configure receive end of ring mode */
-                desc->control_buffer_size |= ENET_RDES1_RERM;
-            }
+                /* configure DMA Rx descriptor table address register */
+                ENET_DMA_RDTADDR = (uint32_t) desc_tab;
+                dma_current_rxdesc = desc_tab;
+                dma_current_ptp_rxdesc = desc_ptptab;
         }
-        /* set desc_ptptab equal to desc_tab */
-        (&desc_ptptab[num])->buffer1_addr = desc->buffer1_addr;
-        (&desc_ptptab[num])->buffer2_next_desc_addr = desc->buffer2_next_desc_addr;
-    }
-    /* when it is the last ptp descriptor, preserve the first descriptor
-    address of desc_ptptab in ptp descriptor status */
-    (&desc_ptptab[num - 1U])->status = (uint32_t)desc_ptptab;
+
+        /* configure each descriptor */
+        for (num = 0U; num < count; num++) {
+                /* get the pointer to the next descriptor of the descriptor table */
+                desc = desc_tab + num;
+
+                /* configure descriptors */
+                desc->status = desc_status;
+                desc->control_buffer_size = desc_bufsize;
+                desc->buffer1_addr = (uint32_t) (&buf[num * maxsize]);
+
+                /* when it is the last descriptor */
+                if (num == (count - 1U)) {
+                        if (ENET_DMA_TX == direction) {
+                                /* configure transmit end of ring mode */
+                                desc->status |= ENET_TDES0_TERM;
+                        } else {
+                                /* configure receive end of ring mode */
+                                desc->control_buffer_size |= ENET_RDES1_RERM;
+                        }
+                }
+                /* set desc_ptptab equal to desc_tab */
+                (&desc_ptptab[num])->buffer1_addr = desc->buffer1_addr;
+                (&desc_ptptab[num])->buffer2_next_desc_addr = desc->buffer2_next_desc_addr;
+        }
+        /* when it is the last ptp descriptor, preserve the first descriptor
+        address of desc_ptptab in ptp descriptor status */
+        (&desc_ptptab[num - 1U])->status = (uint32_t) desc_ptptab;
 }
 
 /*!
@@ -2843,88 +2859,92 @@ void enet_ptp_normal_descriptors_ring_init(enet_dmadirection_enum direction, ene
 */
 ErrStatus enet_ptpframe_receive_normal_mode(uint8_t *buffer, uint32_t bufsize, uint32_t timestamp[])
 {
-    uint32_t offset = 0U, size = 0U;
+        uint32_t offset = 0U, size = 0U;
 
-    /* the descriptor is busy due to own by the DMA */
-    if((uint32_t)RESET != (dma_current_rxdesc->status & ENET_RDES0_DAV)) {
-        return ERROR;
-    }
-
-    /* if buffer pointer is null, indicates that users has copied data in application */
-    if(NULL != buffer) {
-        /* if no error occurs, and the frame uses only one descriptor */
-        if(((uint32_t)RESET == (dma_current_rxdesc->status & ENET_RDES0_ERRS)) &&
-                ((uint32_t)RESET != (dma_current_rxdesc->status & ENET_RDES0_LDES)) &&
-                ((uint32_t)RESET != (dma_current_rxdesc->status & ENET_RDES0_FDES))) {
-
-            /* get the frame length except CRC */
-            size = GET_RDES0_FRML(dma_current_rxdesc->status) - 4U;
-            /* if is a type frame, and CRC is not included in forwarding frame */
-            if((RESET != (ENET_MAC_CFG & ENET_MAC_CFG_TFCD)) && (RESET != (dma_current_rxdesc->status & ENET_RDES0_FRMT))) {
-                size = size + 4U;
-            }
-
-            /* to avoid situation that the frame size exceeds the buffer length */
-            if(size > bufsize) {
+        /* the descriptor is busy due to own by the DMA */
+        if ((uint32_t) RESET != (dma_current_rxdesc->status & ENET_RDES0_DAV)) {
                 return ERROR;
-            }
-
-            /* copy data from Rx buffer to application buffer */
-            for(offset = 0U; offset < size; offset++) {
-                (*(buffer + offset)) = (*(__IO uint8_t *)(uint32_t)((dma_current_ptp_rxdesc->buffer1_addr) + offset));
-            }
-
-        } else {
-            return ERROR;
         }
-    }
-    /* copy timestamp value from Rx descriptor to application array */
-    timestamp[0] = dma_current_rxdesc->buffer1_addr;
-    timestamp[1] = dma_current_rxdesc->buffer2_next_desc_addr;
 
-    dma_current_rxdesc->buffer1_addr = dma_current_ptp_rxdesc ->buffer1_addr ;
-    dma_current_rxdesc->buffer2_next_desc_addr = dma_current_ptp_rxdesc ->buffer2_next_desc_addr;
+        /* if buffer pointer is null, indicates that users has copied data in application */
+        if (NULL != buffer) {
+                /* if no error occurs, and the frame uses only one descriptor */
+                if (((uint32_t) RESET == (dma_current_rxdesc->status & ENET_RDES0_ERRS)) &&
+                        ((uint32_t) RESET != (dma_current_rxdesc->status & ENET_RDES0_LDES)) &&
+                        ((uint32_t) RESET != (dma_current_rxdesc->status & ENET_RDES0_FDES))) {
 
-    /* enable reception, descriptor is owned by DMA */
-    dma_current_rxdesc->status = ENET_RDES0_DAV;
+                        /* get the frame length except CRC */
+                        size = GET_RDES0_FRML(dma_current_rxdesc->status) - 4U;
+                        /* if is a type frame, and CRC is not included in forwarding frame */
+                        if ((RESET != (ENET_MAC_CFG & ENET_MAC_CFG_TFCD))
+                                && (RESET != (dma_current_rxdesc->status & ENET_RDES0_FRMT))) {
+                                size = size + 4U;
+                        }
 
-    /* check Rx buffer unavailable flag status */
-    if((uint32_t)RESET != (ENET_DMA_STAT & ENET_DMA_STAT_RBU)) {
-        /* clear RBU flag */
-        ENET_DMA_STAT = ENET_DMA_STAT_RBU;
-        /* resume DMA reception by writing to the RPEN register*/
-        ENET_DMA_RPEN = 0U;
-    }
+                        /* to avoid situation that the frame size exceeds the buffer length */
+                        if (size > bufsize) {
+                                return ERROR;
+                        }
 
+                        /* copy data from Rx buffer to application buffer */
+                        for (offset = 0U; offset < size; offset++) {
+                                (*(buffer + offset)) =
+                                        (*(__IO uint8_t *) (uint32_t) ((dma_current_ptp_rxdesc->buffer1_addr)
+                                                + offset));
+                        }
 
-    /* update the current RxDMA descriptor pointer to the next decriptor in RxDMA decriptor table */
-    /* chained mode */
-    if((uint32_t)RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RCHM)) {
-        dma_current_rxdesc = (enet_descriptors_struct *)(dma_current_ptp_rxdesc->buffer2_next_desc_addr);
-        /* if it is the last ptp descriptor */
-        if(0U != dma_current_ptp_rxdesc->status) {
-            /* pointer back to the first ptp descriptor address in the desc_ptptab list address */
-            dma_current_ptp_rxdesc = (enet_descriptors_struct *)(dma_current_ptp_rxdesc->status);
-        } else {
-            /* ponter to the next ptp descriptor */
-            dma_current_ptp_rxdesc++;
+                } else {
+                        return ERROR;
+                }
         }
-    } else {
-        /* ring mode */
-        if((uint32_t)RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RERM)) {
-            /* if is the last descriptor in table, the next descriptor is the table header */
-            dma_current_rxdesc = (enet_descriptors_struct *)(ENET_DMA_RDTADDR);
-            /* RDES2 and RDES3 will not be covered by buffer address, so do not need to preserve a new table,
-            use the same table with RxDMA descriptor */
-            dma_current_ptp_rxdesc = (enet_descriptors_struct *)(dma_current_ptp_rxdesc->status);
-        } else {
-            /* the next descriptor is the current address, add the descriptor size, and descriptor skip length */
-            dma_current_rxdesc = (enet_descriptors_struct *)(uint32_t)((uint32_t)dma_current_rxdesc + ETH_DMARXDESC_SIZE + GET_DMA_BCTL_DPSL(ENET_DMA_BCTL));
-            dma_current_ptp_rxdesc ++;
-        }
-    }
+        /* copy timestamp value from Rx descriptor to application array */
+        timestamp[0] = dma_current_rxdesc->buffer1_addr;
+        timestamp[1] = dma_current_rxdesc->buffer2_next_desc_addr;
 
-    return SUCCESS;
+        dma_current_rxdesc->buffer1_addr = dma_current_ptp_rxdesc->buffer1_addr;
+        dma_current_rxdesc->buffer2_next_desc_addr = dma_current_ptp_rxdesc->buffer2_next_desc_addr;
+
+        /* enable reception, descriptor is owned by DMA */
+        dma_current_rxdesc->status = ENET_RDES0_DAV;
+
+        /* check Rx buffer unavailable flag status */
+        if ((uint32_t) RESET != (ENET_DMA_STAT & ENET_DMA_STAT_RBU)) {
+                /* clear RBU flag */
+                ENET_DMA_STAT = ENET_DMA_STAT_RBU;
+                /* resume DMA reception by writing to the RPEN register*/
+                ENET_DMA_RPEN = 0U;
+        }
+
+
+        /* update the current RxDMA descriptor pointer to the next decriptor in RxDMA decriptor table */
+        /* chained mode */
+        if ((uint32_t) RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RCHM)) {
+                dma_current_rxdesc = (enet_descriptors_struct *) (dma_current_ptp_rxdesc->buffer2_next_desc_addr);
+                /* if it is the last ptp descriptor */
+                if (0U != dma_current_ptp_rxdesc->status) {
+                        /* pointer back to the first ptp descriptor address in the desc_ptptab list address */
+                        dma_current_ptp_rxdesc = (enet_descriptors_struct *) (dma_current_ptp_rxdesc->status);
+                } else {
+                        /* ponter to the next ptp descriptor */
+                        dma_current_ptp_rxdesc++;
+                }
+        } else {
+                /* ring mode */
+                if ((uint32_t) RESET != (dma_current_rxdesc->control_buffer_size & ENET_RDES1_RERM)) {
+                        /* if is the last descriptor in table, the next descriptor is the table header */
+                        dma_current_rxdesc = (enet_descriptors_struct *) (ENET_DMA_RDTADDR);
+                        /* RDES2 and RDES3 will not be covered by buffer address, so do not need to preserve a new table,
+                        use the same table with RxDMA descriptor */
+                        dma_current_ptp_rxdesc = (enet_descriptors_struct *) (dma_current_ptp_rxdesc->status);
+                } else {
+                        /* the next descriptor is the current address, add the descriptor size, and descriptor skip length */
+                        dma_current_rxdesc = (enet_descriptors_struct *) (uint32_t) ((uint32_t) dma_current_rxdesc
+                                + ETH_DMARXDESC_SIZE + GET_DMA_BCTL_DPSL(ENET_DMA_BCTL));
+                        dma_current_ptp_rxdesc++;
+                }
+        }
+
+        return SUCCESS;
 }
 
 /*!
@@ -2938,93 +2958,95 @@ ErrStatus enet_ptpframe_receive_normal_mode(uint8_t *buffer, uint32_t bufsize, u
 */
 ErrStatus enet_ptpframe_transmit_normal_mode(uint8_t *buffer, uint32_t length, uint32_t timestamp[])
 {
-    uint32_t offset = 0U, timeout = 0U;
-    uint32_t dma_tbu_flag, dma_tu_flag, tdes0_ttmss_flag;
+        uint32_t offset = 0U, timeout = 0U;
+        uint32_t dma_tbu_flag, dma_tu_flag, tdes0_ttmss_flag;
 
-    /* the descriptor is busy due to own by the DMA */
-    if((uint32_t)RESET != (dma_current_txdesc->status & ENET_TDES0_DAV)) {
-        return ERROR;
-    }
-
-    /* only frame length no more than ENET_MAX_FRAME_SIZE is allowed */
-    if(length > ENET_MAX_FRAME_SIZE) {
-        return ERROR;
-    }
-
-    /* if buffer pointer is null, indicates that users has handled data in application */
-    if(NULL != buffer) {
-        /* copy frame data from application buffer to Tx buffer */
-        for(offset = 0U; offset < length; offset++) {
-            (*(__IO uint8_t *)(uint32_t)((dma_current_ptp_txdesc->buffer1_addr) + offset)) = (*(buffer + offset));
-        }
-    }
-    /* set the frame length */
-    dma_current_txdesc->control_buffer_size = (length & (uint32_t)0x1FFF);
-    /* set the segment of frame, frame is transmitted in one descriptor */
-    dma_current_txdesc->status |= ENET_TDES0_LSG | ENET_TDES0_FSG;
-    /* enable the DMA transmission */
-    dma_current_txdesc->status |= ENET_TDES0_DAV;
-
-    /* check Tx buffer unavailable flag status */
-    dma_tbu_flag = (ENET_DMA_STAT & ENET_DMA_STAT_TBU);
-    dma_tu_flag = (ENET_DMA_STAT & ENET_DMA_STAT_TU);
-
-    if((RESET != dma_tbu_flag) || (RESET != dma_tu_flag)) {
-        /* clear TBU and TU flag */
-        ENET_DMA_STAT = (dma_tbu_flag | dma_tu_flag);
-        /* resume DMA transmission by writing to the TPEN register*/
-        ENET_DMA_TPEN = 0U;
-    }
-
-    /* if timestamp pointer is null, indicates that users don't care timestamp in application */
-    if(NULL != timestamp) {
-        /* wait for ENET_TDES0_TTMSS flag to be set, a timestamp was captured */
-        do {
-            tdes0_ttmss_flag = (dma_current_txdesc->status & ENET_TDES0_TTMSS);
-            timeout++;
-        } while((RESET == tdes0_ttmss_flag) && (timeout < ENET_DELAY_TO));
-
-        /* return ERROR due to timeout */
-        if(ENET_DELAY_TO == timeout) {
-            return ERROR;
+        /* the descriptor is busy due to own by the DMA */
+        if ((uint32_t) RESET != (dma_current_txdesc->status & ENET_TDES0_DAV)) {
+                return ERROR;
         }
 
-        /* clear the ENET_TDES0_TTMSS flag */
-        dma_current_txdesc->status &= ~ENET_TDES0_TTMSS;
-        /* get the timestamp value of the transmit frame */
-        timestamp[0] = dma_current_txdesc->buffer1_addr;
-        timestamp[1] = dma_current_txdesc->buffer2_next_desc_addr;
-    }
-    dma_current_txdesc->buffer1_addr = dma_current_ptp_txdesc ->buffer1_addr ;
-    dma_current_txdesc->buffer2_next_desc_addr = dma_current_ptp_txdesc ->buffer2_next_desc_addr;
+        /* only frame length no more than ENET_MAX_FRAME_SIZE is allowed */
+        if (length > ENET_MAX_FRAME_SIZE) {
+                return ERROR;
+        }
 
-    /* update the current TxDMA descriptor pointer to the next decriptor in TxDMA decriptor table */
-    /* chained mode */
-    if((uint32_t)RESET != (dma_current_txdesc->status & ENET_TDES0_TCHM)) {
-        dma_current_txdesc = (enet_descriptors_struct *)(dma_current_ptp_txdesc->buffer2_next_desc_addr);
-        /* if it is the last ptp descriptor */
-        if(0U != dma_current_ptp_txdesc->status) {
-            /* pointer back to the first ptp descriptor address in the desc_ptptab list address */
-            dma_current_ptp_txdesc = (enet_descriptors_struct *)(dma_current_ptp_txdesc->status);
+        /* if buffer pointer is null, indicates that users has handled data in application */
+        if (NULL != buffer) {
+                /* copy frame data from application buffer to Tx buffer */
+                for (offset = 0U; offset < length; offset++) {
+                        (*(__IO uint8_t *) (uint32_t) ((dma_current_ptp_txdesc->buffer1_addr) + offset)) =
+                                (*(buffer + offset));
+                }
+        }
+        /* set the frame length */
+        dma_current_txdesc->control_buffer_size = (length & (uint32_t) 0x1FFF);
+        /* set the segment of frame, frame is transmitted in one descriptor */
+        dma_current_txdesc->status |= ENET_TDES0_LSG | ENET_TDES0_FSG;
+        /* enable the DMA transmission */
+        dma_current_txdesc->status |= ENET_TDES0_DAV;
+
+        /* check Tx buffer unavailable flag status */
+        dma_tbu_flag = (ENET_DMA_STAT & ENET_DMA_STAT_TBU);
+        dma_tu_flag = (ENET_DMA_STAT & ENET_DMA_STAT_TU);
+
+        if ((RESET != dma_tbu_flag) || (RESET != dma_tu_flag)) {
+                /* clear TBU and TU flag */
+                ENET_DMA_STAT = (dma_tbu_flag | dma_tu_flag);
+                /* resume DMA transmission by writing to the TPEN register*/
+                ENET_DMA_TPEN = 0U;
+        }
+
+        /* if timestamp pointer is null, indicates that users don't care timestamp in application */
+        if (NULL != timestamp) {
+                /* wait for ENET_TDES0_TTMSS flag to be set, a timestamp was captured */
+                do {
+                        tdes0_ttmss_flag = (dma_current_txdesc->status & ENET_TDES0_TTMSS);
+                        timeout++;
+                } while ((RESET == tdes0_ttmss_flag) && (timeout < ENET_DELAY_TO));
+
+                /* return ERROR due to timeout */
+                if (ENET_DELAY_TO == timeout) {
+                        return ERROR;
+                }
+
+                /* clear the ENET_TDES0_TTMSS flag */
+                dma_current_txdesc->status &= ~ENET_TDES0_TTMSS;
+                /* get the timestamp value of the transmit frame */
+                timestamp[0] = dma_current_txdesc->buffer1_addr;
+                timestamp[1] = dma_current_txdesc->buffer2_next_desc_addr;
+        }
+        dma_current_txdesc->buffer1_addr = dma_current_ptp_txdesc->buffer1_addr;
+        dma_current_txdesc->buffer2_next_desc_addr = dma_current_ptp_txdesc->buffer2_next_desc_addr;
+
+        /* update the current TxDMA descriptor pointer to the next decriptor in TxDMA decriptor table */
+        /* chained mode */
+        if ((uint32_t) RESET != (dma_current_txdesc->status & ENET_TDES0_TCHM)) {
+                dma_current_txdesc = (enet_descriptors_struct *) (dma_current_ptp_txdesc->buffer2_next_desc_addr);
+                /* if it is the last ptp descriptor */
+                if (0U != dma_current_ptp_txdesc->status) {
+                        /* pointer back to the first ptp descriptor address in the desc_ptptab list address */
+                        dma_current_ptp_txdesc = (enet_descriptors_struct *) (dma_current_ptp_txdesc->status);
+                } else {
+                        /* ponter to the next ptp descriptor */
+                        dma_current_ptp_txdesc++;
+                }
         } else {
-            /* ponter to the next ptp descriptor */
-            dma_current_ptp_txdesc++;
+                /* ring mode */
+                if ((uint32_t) RESET != (dma_current_txdesc->status & ENET_TDES0_TERM)) {
+                        /* if is the last descriptor in table, the next descriptor is the table header */
+                        dma_current_txdesc = (enet_descriptors_struct *) (ENET_DMA_TDTADDR);
+                        /* TDES2 and TDES3 will not be covered by buffer address, so do not need to preserve a new table,
+                        use the same table with TxDMA descriptor */
+                        dma_current_ptp_txdesc = (enet_descriptors_struct *) (dma_current_ptp_txdesc->status);
+                } else {
+                        /* the next descriptor is the current address, add the descriptor size, and descriptor skip length */
+                        dma_current_txdesc = (enet_descriptors_struct *) (uint32_t) ((uint32_t) dma_current_txdesc
+                                + ETH_DMATXDESC_SIZE + GET_DMA_BCTL_DPSL(ENET_DMA_BCTL));
+                        dma_current_ptp_txdesc++;
+                }
         }
-    } else {
-        /* ring mode */
-        if((uint32_t)RESET != (dma_current_txdesc->status & ENET_TDES0_TERM)) {
-            /* if is the last descriptor in table, the next descriptor is the table header */
-            dma_current_txdesc = (enet_descriptors_struct *)(ENET_DMA_TDTADDR);
-            /* TDES2 and TDES3 will not be covered by buffer address, so do not need to preserve a new table,
-            use the same table with TxDMA descriptor */
-            dma_current_ptp_txdesc = (enet_descriptors_struct *)(dma_current_ptp_txdesc->status);
-        } else {
-            /* the next descriptor is the current address, add the descriptor size, and descriptor skip length */
-            dma_current_txdesc = (enet_descriptors_struct *)(uint32_t)((uint32_t)dma_current_txdesc + ETH_DMATXDESC_SIZE + GET_DMA_BCTL_DPSL(ENET_DMA_BCTL));
-            dma_current_ptp_txdesc ++;
-        }
-    }
-    return SUCCESS;
+        return SUCCESS;
 }
 
 #endif /* SELECT_DESCRIPTORS_ENHANCED_MODE */
@@ -3037,7 +3059,7 @@ ErrStatus enet_ptpframe_transmit_normal_mode(uint8_t *buffer, uint32_t length, u
 */
 void enet_wum_filter_register_pointer_reset(void)
 {
-    ENET_MAC_WUM |= ENET_MAC_WUM_WUFFRPR;
+        ENET_MAC_WUM |= ENET_MAC_WUM_WUFFRPR;
 }
 
 /*!
@@ -3048,12 +3070,12 @@ void enet_wum_filter_register_pointer_reset(void)
 */
 void enet_wum_filter_config(uint32_t pdata[])
 {
-    uint32_t num = 0U;
+        uint32_t num = 0U;
 
-    /* configure ENET_MAC_RWFF register */
-    for(num = 0U; num < ETH_WAKEUP_REGISTER_LENGTH; num++) {
-        ENET_MAC_RWFF = pdata[num];
-    }
+        /* configure ENET_MAC_RWFF register */
+        for (num = 0U; num < ETH_WAKEUP_REGISTER_LENGTH; num++) {
+                ENET_MAC_RWFF = pdata[num];
+        }
 }
 
 /*!
@@ -3069,7 +3091,7 @@ void enet_wum_filter_config(uint32_t pdata[])
 */
 void enet_wum_feature_enable(uint32_t feature)
 {
-    ENET_MAC_WUM |= feature;
+        ENET_MAC_WUM |= feature;
 }
 
 /*!
@@ -3084,7 +3106,7 @@ void enet_wum_feature_enable(uint32_t feature)
 */
 void enet_wum_feature_disable(uint32_t feature)
 {
-    ENET_MAC_WUM &= (~feature);
+        ENET_MAC_WUM &= (~feature);
 }
 
 /*!
@@ -3095,8 +3117,8 @@ void enet_wum_feature_disable(uint32_t feature)
 */
 void enet_msc_counters_reset(void)
 {
-    /* reset all counters */
-    ENET_MSC_CTL |= ENET_MSC_CTL_CTR;
+        /* reset all counters */
+        ENET_MSC_CTL |= ENET_MSC_CTL_CTR;
 }
 
 /*!
@@ -3111,7 +3133,7 @@ void enet_msc_counters_reset(void)
 */
 void enet_msc_feature_enable(uint32_t feature)
 {
-    ENET_MSC_CTL |= feature;
+        ENET_MSC_CTL |= feature;
 }
 
 /*!
@@ -3126,7 +3148,7 @@ void enet_msc_feature_enable(uint32_t feature)
 */
 void enet_msc_feature_disable(uint32_t feature)
 {
-    ENET_MSC_CTL &= (~feature);
+        ENET_MSC_CTL &= (~feature);
 }
 
 /*!
@@ -3141,8 +3163,8 @@ void enet_msc_feature_disable(uint32_t feature)
 */
 void enet_msc_counters_preset_config(enet_msc_preset_enum mode)
 {
-    ENET_MSC_CTL &= ENET_MSC_PRESET_MASK;
-    ENET_MSC_CTL |= (uint32_t)mode;
+        ENET_MSC_CTL &= ENET_MSC_PRESET_MASK;
+        ENET_MSC_CTL |= (uint32_t) mode;
 }
 
 /*!
@@ -3160,11 +3182,11 @@ void enet_msc_counters_preset_config(enet_msc_preset_enum mode)
 */
 uint32_t enet_msc_counters_get(enet_msc_counter_enum counter)
 {
-    uint32_t reval;
+        uint32_t reval;
 
-    reval = REG32((ENET + (uint32_t)counter));
+        reval = REG32((ENET + (uint32_t) counter));
 
-    return reval;
+        return reval;
 }
 
 /*!
@@ -3183,7 +3205,7 @@ uint32_t enet_msc_counters_get(enet_msc_counter_enum counter)
 */
 void enet_ptp_feature_enable(uint32_t feature)
 {
-    ENET_PTP_TSCTL |= feature;
+        ENET_PTP_TSCTL |= feature;
 }
 
 /*!
@@ -3202,7 +3224,7 @@ void enet_ptp_feature_enable(uint32_t feature)
 */
 void enet_ptp_feature_disable(uint32_t feature)
 {
-    ENET_PTP_TSCTL &= ~feature;
+        ENET_PTP_TSCTL &= ~feature;
 }
 
 /*!
@@ -3232,68 +3254,68 @@ void enet_ptp_feature_disable(uint32_t feature)
 */
 ErrStatus enet_ptp_timestamp_function_config(enet_ptp_function_enum func)
 {
-    uint32_t temp_config = 0U, temp_state = 0U;
-    uint32_t timeout = 0U;
-    ErrStatus enet_state = SUCCESS;
+        uint32_t temp_config = 0U, temp_state = 0U;
+        uint32_t timeout = 0U;
+        ErrStatus enet_state = SUCCESS;
 
-    switch(func) {
-    case ENET_CKNT_ORDINARY:
-    case ENET_CKNT_BOUNDARY:
-    case ENET_CKNT_END_TO_END:
-    case ENET_CKNT_PEER_TO_PEER:
-        ENET_PTP_TSCTL &= ~ENET_PTP_TSCTL_CKNT;
-        ENET_PTP_TSCTL |= (uint32_t)func;
-        break;
-    case ENET_PTP_ADDEND_UPDATE:
-        /* this bit must be read as zero before application set it */
-        do {
-            temp_state = ENET_PTP_TSCTL & ENET_PTP_TSCTL_TMSARU;
-            timeout++;
-        } while((RESET != temp_state) && (timeout < ENET_DELAY_TO));
-        /* return ERROR due to timeout */
-        if(ENET_DELAY_TO == timeout) {
-            enet_state = ERROR;
-        } else {
-            ENET_PTP_TSCTL |= ENET_PTP_TSCTL_TMSARU;
+        switch (func) {
+        case ENET_CKNT_ORDINARY:
+        case ENET_CKNT_BOUNDARY:
+        case ENET_CKNT_END_TO_END:
+        case ENET_CKNT_PEER_TO_PEER:
+                ENET_PTP_TSCTL &= ~ENET_PTP_TSCTL_CKNT;
+                ENET_PTP_TSCTL |= (uint32_t) func;
+                break;
+        case ENET_PTP_ADDEND_UPDATE:
+                /* this bit must be read as zero before application set it */
+                do {
+                        temp_state = ENET_PTP_TSCTL & ENET_PTP_TSCTL_TMSARU;
+                        timeout++;
+                } while ((RESET != temp_state) && (timeout < ENET_DELAY_TO));
+                /* return ERROR due to timeout */
+                if (ENET_DELAY_TO == timeout) {
+                        enet_state = ERROR;
+                } else {
+                        ENET_PTP_TSCTL |= ENET_PTP_TSCTL_TMSARU;
+                }
+                break;
+        case ENET_PTP_SYSTIME_UPDATE:
+                /* both the TMSSTU and TMSSTI bits must be read as zero before application set this bit */
+                do {
+                        temp_state = ENET_PTP_TSCTL & (ENET_PTP_TSCTL_TMSSTU | ENET_PTP_TSCTL_TMSSTI);
+                        timeout++;
+                } while ((RESET != temp_state) && (timeout < ENET_DELAY_TO));
+                /* return ERROR due to timeout */
+                if (ENET_DELAY_TO == timeout) {
+                        enet_state = ERROR;
+                } else {
+                        ENET_PTP_TSCTL |= ENET_PTP_TSCTL_TMSSTU;
+                }
+                break;
+        case ENET_PTP_SYSTIME_INIT:
+                /* this bit must be read as zero before application set it */
+                do {
+                        temp_state = ENET_PTP_TSCTL & ENET_PTP_TSCTL_TMSSTI;
+                        timeout++;
+                } while ((RESET != temp_state) && (timeout < ENET_DELAY_TO));
+                /* return ERROR due to timeout */
+                if (ENET_DELAY_TO == timeout) {
+                        enet_state = ERROR;
+                } else {
+                        ENET_PTP_TSCTL |= ENET_PTP_TSCTL_TMSSTI;
+                }
+                break;
+        default:
+                temp_config = (uint32_t) func & (~BIT(31));
+                if (RESET != ((uint32_t) func & BIT(31))) {
+                        ENET_PTP_TSCTL |= temp_config;
+                } else {
+                        ENET_PTP_TSCTL &= ~temp_config;
+                }
+                break;
         }
-        break;
-    case ENET_PTP_SYSTIME_UPDATE:
-        /* both the TMSSTU and TMSSTI bits must be read as zero before application set this bit */
-        do {
-            temp_state = ENET_PTP_TSCTL & (ENET_PTP_TSCTL_TMSSTU | ENET_PTP_TSCTL_TMSSTI);
-            timeout++;
-        } while((RESET != temp_state) && (timeout < ENET_DELAY_TO));
-        /* return ERROR due to timeout */
-        if(ENET_DELAY_TO == timeout) {
-            enet_state = ERROR;
-        } else {
-            ENET_PTP_TSCTL |= ENET_PTP_TSCTL_TMSSTU;
-        }
-        break;
-    case ENET_PTP_SYSTIME_INIT:
-        /* this bit must be read as zero before application set it */
-        do {
-            temp_state = ENET_PTP_TSCTL & ENET_PTP_TSCTL_TMSSTI;
-            timeout++;
-        } while((RESET != temp_state) && (timeout < ENET_DELAY_TO));
-        /* return ERROR due to timeout */
-        if(ENET_DELAY_TO == timeout) {
-            enet_state = ERROR;
-        } else {
-            ENET_PTP_TSCTL |= ENET_PTP_TSCTL_TMSSTI;
-        }
-        break;
-    default:
-        temp_config = (uint32_t)func & (~BIT(31));
-        if(RESET != ((uint32_t)func & BIT(31))) {
-            ENET_PTP_TSCTL |= temp_config;
-        } else {
-            ENET_PTP_TSCTL &= ~temp_config;
-        }
-        break;
-    }
 
-    return enet_state;
+        return enet_state;
 }
 
 /*!
@@ -3304,7 +3326,7 @@ ErrStatus enet_ptp_timestamp_function_config(enet_ptp_function_enum func)
 */
 void enet_ptp_subsecond_increment_config(uint32_t subsecond)
 {
-    ENET_PTP_SSINC = PTP_SSINC_STMSSI(subsecond);
+        ENET_PTP_SSINC = PTP_SSINC_STMSSI(subsecond);
 }
 
 /*!
@@ -3315,7 +3337,7 @@ void enet_ptp_subsecond_increment_config(uint32_t subsecond)
 */
 void enet_ptp_timestamp_addend_config(uint32_t add)
 {
-    ENET_PTP_TSADDEND = add;
+        ENET_PTP_TSADDEND = add;
 }
 
 /*!
@@ -3332,8 +3354,8 @@ void enet_ptp_timestamp_addend_config(uint32_t add)
 */
 void enet_ptp_timestamp_update_config(uint32_t sign, uint32_t second, uint32_t subsecond)
 {
-    ENET_PTP_TSUH = second;
-    ENET_PTP_TSUL = sign | PTP_TSUL_TMSUSS(subsecond);
+        ENET_PTP_TSUH = second;
+        ENET_PTP_TSUL = sign | PTP_TSUL_TMSUSS(subsecond);
 }
 
 /*!
@@ -3345,8 +3367,8 @@ void enet_ptp_timestamp_update_config(uint32_t sign, uint32_t second, uint32_t s
 */
 void enet_ptp_expected_time_config(uint32_t second, uint32_t nanosecond)
 {
-    ENET_PTP_ETH = second;
-    ENET_PTP_ETL = nanosecond;
+        ENET_PTP_ETH = second;
+        ENET_PTP_ETL = nanosecond;
 }
 
 /*!
@@ -3362,16 +3384,16 @@ void enet_ptp_expected_time_config(uint32_t second, uint32_t nanosecond)
 */
 void enet_ptp_system_time_get(enet_ptp_systime_struct *systime_struct)
 {
-    uint32_t temp_sec = 0U, temp_subs = 0U;
+        uint32_t temp_sec = 0U, temp_subs = 0U;
 
-    /* get the value of sysytem time registers */
-    temp_sec = (uint32_t)ENET_PTP_TSH;
-    temp_subs = (uint32_t)ENET_PTP_TSL;
+        /* get the value of sysytem time registers */
+        temp_sec = (uint32_t) ENET_PTP_TSH;
+        temp_subs = (uint32_t) ENET_PTP_TSL;
 
-    /* get sysytem time and construct the enet_ptp_systime_struct structure */
-    systime_struct->second = temp_sec;
-    systime_struct->subsecond = GET_PTP_TSL_STMSS(temp_subs);
-    systime_struct->sign = GET_PTP_TSL_STS(temp_subs);
+        /* get sysytem time and construct the enet_ptp_systime_struct structure */
+        systime_struct->second = temp_sec;
+        systime_struct->subsecond = GET_PTP_TSL_STMSS(temp_subs);
+        systime_struct->sign = GET_PTP_TSL_STS(temp_subs);
 }
 
 /*!
@@ -3399,7 +3421,7 @@ void enet_ptp_system_time_get(enet_ptp_systime_struct *systime_struct)
 */
 void enet_ptp_pps_output_frequency_config(uint32_t freq)
 {
-    ENET_PTP_PPSCTL = freq;
+        ENET_PTP_PPSCTL = freq;
 }
 
 /*!
@@ -3410,21 +3432,21 @@ void enet_ptp_pps_output_frequency_config(uint32_t freq)
 */
 void enet_initpara_reset(void)
 {
-    enet_initpara.option_enable = 0U;
-    enet_initpara.forward_frame = 0U;
-    enet_initpara.dmabus_mode = 0U;
-    enet_initpara.dma_maxburst = 0U;
-    enet_initpara.dma_arbitration = 0U;
-    enet_initpara.store_forward_mode = 0U;
-    enet_initpara.dma_function = 0U;
-    enet_initpara.vlan_config = 0U;
-    enet_initpara.flow_control = 0U;
-    enet_initpara.hashtable_high = 0U;
-    enet_initpara.hashtable_low = 0U;
-    enet_initpara.framesfilter_mode = 0U;
-    enet_initpara.halfduplex_param = 0U;
-    enet_initpara.timer_config = 0U;
-    enet_initpara.interframegap = 0U;
+        enet_initpara.option_enable = 0U;
+        enet_initpara.forward_frame = 0U;
+        enet_initpara.dmabus_mode = 0U;
+        enet_initpara.dma_maxburst = 0U;
+        enet_initpara.dma_arbitration = 0U;
+        enet_initpara.store_forward_mode = 0U;
+        enet_initpara.dma_function = 0U;
+        enet_initpara.vlan_config = 0U;
+        enet_initpara.flow_control = 0U;
+        enet_initpara.hashtable_high = 0U;
+        enet_initpara.hashtable_low = 0U;
+        enet_initpara.framesfilter_mode = 0U;
+        enet_initpara.halfduplex_param = 0U;
+        enet_initpara.timer_config = 0U;
+        enet_initpara.interframegap = 0U;
 }
 
 /*!
@@ -3435,62 +3457,62 @@ void enet_initpara_reset(void)
 */
 static void enet_default_init(void)
 {
-    uint32_t reg_value = 0U;
+        uint32_t reg_value = 0U;
 
-    /* MAC */
-    /* configure ENET_MAC_CFG register */
-    reg_value = ENET_MAC_CFG;
-    reg_value &= MAC_CFG_MASK;
-    reg_value |= ENET_WATCHDOG_ENABLE | ENET_JABBER_ENABLE | ENET_INTERFRAMEGAP_96BIT \
-                 | ENET_SPEEDMODE_10M | ENET_MODE_HALFDUPLEX | ENET_LOOPBACKMODE_DISABLE \
-                 | ENET_CARRIERSENSE_ENABLE | ENET_RECEIVEOWN_ENABLE \
-                 | ENET_RETRYTRANSMISSION_ENABLE | ENET_BACKOFFLIMIT_10 \
-                 | ENET_DEFERRALCHECK_DISABLE \
-                 | ENET_TYPEFRAME_CRC_DROP_DISABLE \
-                 | ENET_AUTO_PADCRC_DROP_DISABLE \
-                 | ENET_CHECKSUMOFFLOAD_DISABLE;
-    ENET_MAC_CFG = reg_value;
+        /* MAC */
+        /* configure ENET_MAC_CFG register */
+        reg_value = ENET_MAC_CFG;
+        reg_value &= MAC_CFG_MASK;
+        reg_value |= ENET_WATCHDOG_ENABLE | ENET_JABBER_ENABLE | ENET_INTERFRAMEGAP_96BIT \
+ | ENET_SPEEDMODE_10M | ENET_MODE_HALFDUPLEX | ENET_LOOPBACKMODE_DISABLE \
+ | ENET_CARRIERSENSE_ENABLE | ENET_RECEIVEOWN_ENABLE \
+ | ENET_RETRYTRANSMISSION_ENABLE | ENET_BACKOFFLIMIT_10 \
+ | ENET_DEFERRALCHECK_DISABLE \
+ | ENET_TYPEFRAME_CRC_DROP_DISABLE \
+ | ENET_AUTO_PADCRC_DROP_DISABLE \
+ | ENET_CHECKSUMOFFLOAD_DISABLE;
+        ENET_MAC_CFG = reg_value;
 
-    /* configure ENET_MAC_FRMF register */
-    ENET_MAC_FRMF = ENET_SRC_FILTER_DISABLE | ENET_DEST_FILTER_INVERSE_DISABLE \
-                    | ENET_MULTICAST_FILTER_PERFECT | ENET_UNICAST_FILTER_PERFECT \
-                    | ENET_PCFRM_PREVENT_ALL | ENET_BROADCASTFRAMES_ENABLE \
-                    | ENET_PROMISCUOUS_DISABLE | ENET_RX_FILTER_ENABLE;
+        /* configure ENET_MAC_FRMF register */
+        ENET_MAC_FRMF = ENET_SRC_FILTER_DISABLE | ENET_DEST_FILTER_INVERSE_DISABLE \
+ | ENET_MULTICAST_FILTER_PERFECT | ENET_UNICAST_FILTER_PERFECT \
+ | ENET_PCFRM_PREVENT_ALL | ENET_BROADCASTFRAMES_ENABLE \
+ | ENET_PROMISCUOUS_DISABLE | ENET_RX_FILTER_ENABLE;
 
-    /* configure ENET_MAC_HLH, ENET_MAC_HLL register */
-    ENET_MAC_HLH = 0x0U;
+        /* configure ENET_MAC_HLH, ENET_MAC_HLL register */
+        ENET_MAC_HLH = 0x0U;
 
-    ENET_MAC_HLL = 0x0U;
+        ENET_MAC_HLL = 0x0U;
 
-    /* configure ENET_MAC_FCTL, ENET_MAC_FCTH register */
-    reg_value = ENET_MAC_FCTL;
-    reg_value &= MAC_FCTL_MASK;
-    reg_value |= MAC_FCTL_PTM(0) | ENET_ZERO_QUANTA_PAUSE_DISABLE \
-                 | ENET_PAUSETIME_MINUS4 | ENET_UNIQUE_PAUSEDETECT \
-                 | ENET_RX_FLOWCONTROL_DISABLE | ENET_TX_FLOWCONTROL_DISABLE;
-    ENET_MAC_FCTL = reg_value;
+        /* configure ENET_MAC_FCTL, ENET_MAC_FCTH register */
+        reg_value = ENET_MAC_FCTL;
+        reg_value &= MAC_FCTL_MASK;
+        reg_value |= MAC_FCTL_PTM(0) | ENET_ZERO_QUANTA_PAUSE_DISABLE \
+ | ENET_PAUSETIME_MINUS4 | ENET_UNIQUE_PAUSEDETECT \
+ | ENET_RX_FLOWCONTROL_DISABLE | ENET_TX_FLOWCONTROL_DISABLE;
+        ENET_MAC_FCTL = reg_value;
 
-    /* configure ENET_MAC_VLT register */
-    ENET_MAC_VLT = ENET_VLANTAGCOMPARISON_16BIT | MAC_VLT_VLTI(0);
+        /* configure ENET_MAC_VLT register */
+        ENET_MAC_VLT = ENET_VLANTAGCOMPARISON_16BIT | MAC_VLT_VLTI(0);
 
-    /* DMA */
-    /* configure ENET_DMA_CTL register */
-    reg_value = ENET_DMA_CTL;
-    reg_value &= DMA_CTL_MASK;
-    reg_value |= ENET_TCPIP_CKSUMERROR_DROP | ENET_RX_MODE_STOREFORWARD \
-                 | ENET_FLUSH_RXFRAME_ENABLE | ENET_TX_MODE_STOREFORWARD \
-                 | ENET_TX_THRESHOLD_64BYTES | ENET_RX_THRESHOLD_64BYTES \
-                 | ENET_SECONDFRAME_OPT_DISABLE;
-    ENET_DMA_CTL = reg_value;
+        /* DMA */
+        /* configure ENET_DMA_CTL register */
+        reg_value = ENET_DMA_CTL;
+        reg_value &= DMA_CTL_MASK;
+        reg_value |= ENET_TCPIP_CKSUMERROR_DROP | ENET_RX_MODE_STOREFORWARD \
+ | ENET_FLUSH_RXFRAME_ENABLE | ENET_TX_MODE_STOREFORWARD \
+ | ENET_TX_THRESHOLD_64BYTES | ENET_RX_THRESHOLD_64BYTES \
+ | ENET_SECONDFRAME_OPT_DISABLE;
+        ENET_DMA_CTL = reg_value;
 
-    /* configure ENET_DMA_BCTL register */
-    reg_value = ENET_DMA_BCTL;
-    reg_value &= DMA_BCTL_MASK;
-    reg_value = ENET_ADDRESS_ALIGN_ENABLE | ENET_ARBITRATION_RXTX_2_1 \
-                | ENET_RXDP_32BEAT | ENET_PGBL_32BEAT | ENET_RXTX_DIFFERENT_PGBL \
-                | ENET_FIXED_BURST_ENABLE | ENET_MIXED_BURST_DISABLE \
-                | ENET_NORMAL_DESCRIPTOR;
-    ENET_DMA_BCTL = reg_value;
+        /* configure ENET_DMA_BCTL register */
+        reg_value = ENET_DMA_BCTL;
+        reg_value &= DMA_BCTL_MASK;
+        reg_value = ENET_ADDRESS_ALIGN_ENABLE | ENET_ARBITRATION_RXTX_2_1 \
+ | ENET_RXDP_32BEAT | ENET_PGBL_32BEAT | ENET_RXTX_DIFFERENT_PGBL \
+ | ENET_FIXED_BURST_ENABLE | ENET_MIXED_BURST_DISABLE \
+ | ENET_NORMAL_DESCRIPTOR;
+        ENET_DMA_BCTL = reg_value;
 }
 
 #ifndef USE_DELAY
@@ -3502,9 +3524,9 @@ static void enet_default_init(void)
 */
 static void enet_delay(uint32_t ncount)
 {
-    __IO uint32_t delay_time = 0U;
+        __IO uint32_t delay_time = 0U;
 
-    for(delay_time = ncount; delay_time != 0U; delay_time--) {
-    }
+        for (delay_time = ncount; delay_time != 0U; delay_time--) {
+        }
 }
 #endif /* USE_DELAY */

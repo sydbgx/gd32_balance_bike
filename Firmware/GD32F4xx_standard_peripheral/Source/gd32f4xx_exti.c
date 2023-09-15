@@ -46,12 +46,12 @@ OF SUCH DAMAGE.
 */
 void exti_deinit(void)
 {
-    /* reset the value of all the EXTI registers */
-    EXTI_INTEN = EXTI_REG_RESET_VALUE;
-    EXTI_EVEN  = EXTI_REG_RESET_VALUE;
-    EXTI_RTEN  = EXTI_REG_RESET_VALUE;
-    EXTI_FTEN  = EXTI_REG_RESET_VALUE;
-    EXTI_SWIEV = EXTI_REG_RESET_VALUE;
+        /* reset the value of all the EXTI registers */
+        EXTI_INTEN = EXTI_REG_RESET_VALUE;
+        EXTI_EVEN = EXTI_REG_RESET_VALUE;
+        EXTI_RTEN = EXTI_REG_RESET_VALUE;
+        EXTI_FTEN = EXTI_REG_RESET_VALUE;
+        EXTI_SWIEV = EXTI_REG_RESET_VALUE;
 }
 
 /*!
@@ -76,42 +76,42 @@ void exti_init(exti_line_enum linex, \
                exti_mode_enum mode, \
                exti_trig_type_enum trig_type)
 {
-    /* reset the EXTI line x */
-    EXTI_INTEN &= ~(uint32_t)linex;
-    EXTI_EVEN &= ~(uint32_t)linex;
-    EXTI_RTEN &= ~(uint32_t)linex;
-    EXTI_FTEN &= ~(uint32_t)linex;
+        /* reset the EXTI line x */
+        EXTI_INTEN &= ~(uint32_t) linex;
+        EXTI_EVEN &= ~(uint32_t) linex;
+        EXTI_RTEN &= ~(uint32_t) linex;
+        EXTI_FTEN &= ~(uint32_t) linex;
 
-    /* set the EXTI mode and enable the interrupts or events from EXTI line x */
-    switch(mode) {
-    case EXTI_INTERRUPT:
-        EXTI_INTEN |= (uint32_t)linex;
-        break;
-    case EXTI_EVENT:
-        EXTI_EVEN |= (uint32_t)linex;
-        break;
-    default:
-        break;
-    }
+        /* set the EXTI mode and enable the interrupts or events from EXTI line x */
+        switch (mode) {
+        case EXTI_INTERRUPT:
+                EXTI_INTEN |= (uint32_t) linex;
+                break;
+        case EXTI_EVENT:
+                EXTI_EVEN |= (uint32_t) linex;
+                break;
+        default:
+                break;
+        }
 
-    /* set the EXTI trigger type */
-    switch(trig_type) {
-    case EXTI_TRIG_RISING:
-        EXTI_RTEN |= (uint32_t)linex;
-        EXTI_FTEN &= ~(uint32_t)linex;
-        break;
-    case EXTI_TRIG_FALLING:
-        EXTI_RTEN &= ~(uint32_t)linex;
-        EXTI_FTEN |= (uint32_t)linex;
-        break;
-    case EXTI_TRIG_BOTH:
-        EXTI_RTEN |= (uint32_t)linex;
-        EXTI_FTEN |= (uint32_t)linex;
-        break;
-    case EXTI_TRIG_NONE:
-    default:
-        break;
-    }
+        /* set the EXTI trigger type */
+        switch (trig_type) {
+        case EXTI_TRIG_RISING:
+                EXTI_RTEN |= (uint32_t) linex;
+                EXTI_FTEN &= ~(uint32_t) linex;
+                break;
+        case EXTI_TRIG_FALLING:
+                EXTI_RTEN &= ~(uint32_t) linex;
+                EXTI_FTEN |= (uint32_t) linex;
+                break;
+        case EXTI_TRIG_BOTH:
+                EXTI_RTEN |= (uint32_t) linex;
+                EXTI_FTEN |= (uint32_t) linex;
+                break;
+        case EXTI_TRIG_NONE:
+        default:
+                break;
+        }
 }
 
 /*!
@@ -124,7 +124,7 @@ void exti_init(exti_line_enum linex, \
 */
 void exti_interrupt_enable(exti_line_enum linex)
 {
-    EXTI_INTEN |= (uint32_t)linex;
+        EXTI_INTEN |= (uint32_t) linex;
 }
 
 /*!
@@ -137,7 +137,7 @@ void exti_interrupt_enable(exti_line_enum linex)
 */
 void exti_interrupt_disable(exti_line_enum linex)
 {
-    EXTI_INTEN &= ~(uint32_t)linex;
+        EXTI_INTEN &= ~(uint32_t) linex;
 }
 
 /*!
@@ -150,7 +150,7 @@ void exti_interrupt_disable(exti_line_enum linex)
 */
 void exti_event_enable(exti_line_enum linex)
 {
-    EXTI_EVEN |= (uint32_t)linex;
+        EXTI_EVEN |= (uint32_t) linex;
 }
 
 /*!
@@ -163,7 +163,7 @@ void exti_event_enable(exti_line_enum linex)
 */
 void exti_event_disable(exti_line_enum linex)
 {
-    EXTI_EVEN &= ~(uint32_t)linex;
+        EXTI_EVEN &= ~(uint32_t) linex;
 }
 
 /*!
@@ -176,7 +176,7 @@ void exti_event_disable(exti_line_enum linex)
 */
 void exti_software_interrupt_enable(exti_line_enum linex)
 {
-    EXTI_SWIEV |= (uint32_t)linex;
+        EXTI_SWIEV |= (uint32_t) linex;
 }
 
 /*!
@@ -189,7 +189,7 @@ void exti_software_interrupt_enable(exti_line_enum linex)
 */
 void exti_software_interrupt_disable(exti_line_enum linex)
 {
-    EXTI_SWIEV &= ~(uint32_t)linex;
+        EXTI_SWIEV &= ~(uint32_t) linex;
 }
 
 /*!
@@ -202,11 +202,11 @@ void exti_software_interrupt_disable(exti_line_enum linex)
 */
 FlagStatus exti_flag_get(exti_line_enum linex)
 {
-    if(RESET != (EXTI_PD & (uint32_t)linex)) {
-        return SET;
-    } else {
-        return RESET;
-    }
+        if (RESET != (EXTI_PD & (uint32_t) linex)) {
+                return SET;
+        } else {
+                return RESET;
+        }
 }
 
 /*!
@@ -219,7 +219,7 @@ FlagStatus exti_flag_get(exti_line_enum linex)
 */
 void exti_flag_clear(exti_line_enum linex)
 {
-    EXTI_PD = (uint32_t)linex;
+        EXTI_PD = (uint32_t) linex;
 }
 
 /*!
@@ -232,11 +232,11 @@ void exti_flag_clear(exti_line_enum linex)
 */
 FlagStatus exti_interrupt_flag_get(exti_line_enum linex)
 {
-    if(RESET != (EXTI_PD & (uint32_t)linex)) {
-        return SET;
-    } else {
-        return RESET;
-    }
+        if (RESET != (EXTI_PD & (uint32_t) linex)) {
+                return SET;
+        } else {
+                return RESET;
+        }
 }
 
 /*!
@@ -249,5 +249,5 @@ FlagStatus exti_interrupt_flag_get(exti_line_enum linex)
 */
 void exti_interrupt_flag_clear(exti_line_enum linex)
 {
-    EXTI_PD = (uint32_t)linex;
+        EXTI_PD = (uint32_t) linex;
 }

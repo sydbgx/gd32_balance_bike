@@ -47,8 +47,8 @@ OF SUCH DAMAGE.
 */
 void dbg_deinit(void)
 {
-    DBG_CTL0 = DBG_RESET_VAL;
-    DBG_CTL1 = DBG_RESET_VAL;
+        DBG_CTL0 = DBG_RESET_VAL;
+        DBG_CTL1 = DBG_RESET_VAL;
 }
 
 /*!
@@ -59,7 +59,7 @@ void dbg_deinit(void)
 */
 uint32_t dbg_id_get(void)
 {
-    return DBG_ID;
+        return DBG_ID;
 }
 
 /*!
@@ -74,7 +74,7 @@ uint32_t dbg_id_get(void)
 */
 void dbg_low_power_enable(uint32_t dbg_low_power)
 {
-    DBG_CTL0 |= dbg_low_power;
+        DBG_CTL0 |= dbg_low_power;
 }
 
 /*!
@@ -89,7 +89,7 @@ void dbg_low_power_enable(uint32_t dbg_low_power)
 */
 void dbg_low_power_disable(uint32_t dbg_low_power)
 {
-    DBG_CTL0 &= ~dbg_low_power;
+        DBG_CTL0 &= ~dbg_low_power;
 }
 
 /*!
@@ -122,7 +122,7 @@ void dbg_low_power_disable(uint32_t dbg_low_power)
 */
 void dbg_periph_enable(dbg_periph_enum dbg_periph)
 {
-    DBG_REG_VAL(dbg_periph) |= BIT(DBG_BIT_POS(dbg_periph));
+        DBG_REG_VAL(dbg_periph) |= BIT(DBG_BIT_POS(dbg_periph));
 }
 
 /*!
@@ -156,7 +156,7 @@ void dbg_periph_enable(dbg_periph_enum dbg_periph)
 */
 void dbg_periph_disable(dbg_periph_enum dbg_periph)
 {
-    DBG_REG_VAL(dbg_periph) &= ~BIT(DBG_BIT_POS(dbg_periph));
+        DBG_REG_VAL(dbg_periph) &= ~BIT(DBG_BIT_POS(dbg_periph));
 }
 
 /*!
@@ -167,7 +167,7 @@ void dbg_periph_disable(dbg_periph_enum dbg_periph)
 */
 void dbg_trace_pin_enable(void)
 {
-    DBG_CTL0 |= DBG_CTL0_TRACE_IOEN;
+        DBG_CTL0 |= DBG_CTL0_TRACE_IOEN;
 }
 
 /*!
@@ -178,6 +178,6 @@ void dbg_trace_pin_enable(void)
 */
 void dbg_trace_pin_disable(void)
 {
-    DBG_CTL0 &= ~DBG_CTL0_TRACE_IOEN;
+        DBG_CTL0 &= ~DBG_CTL0_TRACE_IOEN;
 }
 

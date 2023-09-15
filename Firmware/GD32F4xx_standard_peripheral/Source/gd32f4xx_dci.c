@@ -45,8 +45,8 @@ OF SUCH DAMAGE.
 */
 void dci_deinit(void)
 {
-    rcu_periph_reset_enable(RCU_DCIRST);
-    rcu_periph_reset_disable(RCU_DCIRST);
+        rcu_periph_reset_enable(RCU_DCIRST);
+        rcu_periph_reset_disable(RCU_DCIRST);
 }
 
 /*!
@@ -65,18 +65,18 @@ void dci_deinit(void)
 */
 void dci_init(dci_parameter_struct *dci_struct)
 {
-    uint32_t reg = 0U;
-    /* disable capture function and DCI */
-    DCI_CTL &= ~(DCI_CTL_CAP | DCI_CTL_DCIEN);
-    /* configure DCI parameter */
-    reg |= dci_struct->capture_mode;
-    reg |= dci_struct->clock_polarity;
-    reg |= dci_struct->hsync_polarity;
-    reg |= dci_struct->vsync_polarity;
-    reg |= dci_struct->frame_rate;
-    reg |= dci_struct->interface_format;
+        uint32_t reg = 0U;
+        /* disable capture function and DCI */
+        DCI_CTL &= ~(DCI_CTL_CAP | DCI_CTL_DCIEN);
+        /* configure DCI parameter */
+        reg |= dci_struct->capture_mode;
+        reg |= dci_struct->clock_polarity;
+        reg |= dci_struct->hsync_polarity;
+        reg |= dci_struct->vsync_polarity;
+        reg |= dci_struct->frame_rate;
+        reg |= dci_struct->interface_format;
 
-    DCI_CTL = reg;
+        DCI_CTL = reg;
 }
 
 /*!
@@ -87,7 +87,7 @@ void dci_init(dci_parameter_struct *dci_struct)
 */
 void dci_enable(void)
 {
-    DCI_CTL |= DCI_CTL_DCIEN;
+        DCI_CTL |= DCI_CTL_DCIEN;
 }
 
 /*!
@@ -98,7 +98,7 @@ void dci_enable(void)
 */
 void dci_disable(void)
 {
-    DCI_CTL &= ~DCI_CTL_DCIEN;
+        DCI_CTL &= ~DCI_CTL_DCIEN;
 }
 
 /*!
@@ -109,7 +109,7 @@ void dci_disable(void)
 */
 void dci_capture_enable(void)
 {
-    DCI_CTL |= DCI_CTL_CAP;
+        DCI_CTL |= DCI_CTL_CAP;
 }
 
 /*!
@@ -120,7 +120,7 @@ void dci_capture_enable(void)
 */
 void dci_capture_disable(void)
 {
-    DCI_CTL &= ~DCI_CTL_CAP;
+        DCI_CTL &= ~DCI_CTL_CAP;
 }
 
 /*!
@@ -131,7 +131,7 @@ void dci_capture_disable(void)
 */
 void dci_jpeg_enable(void)
 {
-    DCI_CTL |= DCI_CTL_JM;
+        DCI_CTL |= DCI_CTL_JM;
 }
 
 /*!
@@ -142,7 +142,7 @@ void dci_jpeg_enable(void)
 */
 void dci_jpeg_disable(void)
 {
-    DCI_CTL &= ~DCI_CTL_JM;
+        DCI_CTL &= ~DCI_CTL_JM;
 }
 
 /*!
@@ -153,7 +153,7 @@ void dci_jpeg_disable(void)
 */
 void dci_crop_window_enable(void)
 {
-    DCI_CTL |= DCI_CTL_WDEN;
+        DCI_CTL |= DCI_CTL_WDEN;
 }
 
 /*!
@@ -164,7 +164,7 @@ void dci_crop_window_enable(void)
 */
 void dci_crop_window_disable(void)
 {
-    DCI_CTL &= ~DCI_CTL_WDEN;
+        DCI_CTL &= ~DCI_CTL_WDEN;
 }
 
 /*!
@@ -178,8 +178,8 @@ void dci_crop_window_disable(void)
 */
 void dci_crop_window_config(uint16_t start_x, uint16_t start_y, uint16_t size_width, uint16_t size_height)
 {
-    DCI_CWSPOS = ((uint32_t)start_x | ((uint32_t)start_y << 16));
-    DCI_CWSZ = ((uint32_t)size_width | ((uint32_t)size_height << 16));
+        DCI_CWSPOS = ((uint32_t) start_x | ((uint32_t) start_y << 16));
+        DCI_CWSZ = ((uint32_t) size_width | ((uint32_t) size_height << 16));
 }
 
 /*!
@@ -190,7 +190,7 @@ void dci_crop_window_config(uint16_t start_x, uint16_t start_y, uint16_t size_wi
 */
 void dci_embedded_sync_enable(void)
 {
-    DCI_CTL |= DCI_CTL_ESM;
+        DCI_CTL |= DCI_CTL_ESM;
 }
 
 /*!
@@ -201,7 +201,7 @@ void dci_embedded_sync_enable(void)
 */
 void dci_embedded_sync_disable(void)
 {
-    DCI_CTL &= ~DCI_CTL_ESM;
+        DCI_CTL &= ~DCI_CTL_ESM;
 }
 /*!
     \brief    config synchronous codes in embedded synchronous mode
@@ -214,7 +214,8 @@ void dci_embedded_sync_disable(void)
 */
 void dci_sync_codes_config(uint8_t frame_start, uint8_t line_start, uint8_t line_end, uint8_t frame_end)
 {
-    DCI_SC = ((uint32_t)frame_start | ((uint32_t)line_start << 8) | ((uint32_t)line_end << 16) | ((uint32_t)frame_end << 24));
+        DCI_SC = ((uint32_t) frame_start | ((uint32_t) line_start << 8) | ((uint32_t) line_end << 16)
+                | ((uint32_t) frame_end << 24));
 }
 
 /*!
@@ -228,7 +229,8 @@ void dci_sync_codes_config(uint8_t frame_start, uint8_t line_start, uint8_t line
 */
 void dci_sync_codes_unmask_config(uint8_t frame_start, uint8_t line_start, uint8_t line_end, uint8_t frame_end)
 {
-    DCI_SCUMSK = ((uint32_t)frame_start | ((uint32_t)line_start << 8) | ((uint32_t)line_end << 16) | ((uint32_t)frame_end << 24));
+        DCI_SCUMSK = ((uint32_t) frame_start | ((uint32_t) line_start << 8) | ((uint32_t) line_end << 16)
+                | ((uint32_t) frame_end << 24));
 }
 
 /*!
@@ -239,7 +241,7 @@ void dci_sync_codes_unmask_config(uint8_t frame_start, uint8_t line_start, uint8
 */
 uint32_t dci_data_read(void)
 {
-    return DCI_DATA;
+        return DCI_DATA;
 }
 
 /*!
@@ -258,21 +260,21 @@ uint32_t dci_data_read(void)
 */
 FlagStatus dci_flag_get(uint32_t flag)
 {
-    uint32_t stat = 0U;
+        uint32_t stat = 0U;
 
-    if(flag >> 31) {
-        /* get flag status from DCI_STAT1 register */
-        stat = DCI_STAT1;
-    } else {
-        /* get flag status from DCI_STAT0 register */
-        stat = DCI_STAT0;
-    }
+        if (flag >> 31) {
+                /* get flag status from DCI_STAT1 register */
+                stat = DCI_STAT1;
+        } else {
+                /* get flag status from DCI_STAT0 register */
+                stat = DCI_STAT0;
+        }
 
-    if(flag & stat) {
-        return SET;
-    } else {
-        return RESET;
-    }
+        if (flag & stat) {
+                return SET;
+        } else {
+                return RESET;
+        }
 }
 
 /*!
@@ -288,7 +290,7 @@ FlagStatus dci_flag_get(uint32_t flag)
 */
 void dci_interrupt_enable(uint32_t interrupt)
 {
-    DCI_INTEN |= interrupt;
+        DCI_INTEN |= interrupt;
 }
 
 /*!
@@ -304,7 +306,7 @@ void dci_interrupt_enable(uint32_t interrupt)
 */
 void dci_interrupt_disable(uint32_t interrupt)
 {
-    DCI_INTEN &= ~interrupt;
+        DCI_INTEN &= ~interrupt;
 }
 
 /*!
@@ -320,7 +322,7 @@ void dci_interrupt_disable(uint32_t interrupt)
 */
 void dci_interrupt_flag_clear(uint32_t int_flag)
 {
-    DCI_INTC |= int_flag;
+        DCI_INTC |= int_flag;
 }
 
 /*!
@@ -336,11 +338,11 @@ void dci_interrupt_flag_clear(uint32_t int_flag)
 */
 FlagStatus dci_interrupt_flag_get(uint32_t int_flag)
 {
-    if(RESET == (DCI_INTF & int_flag)) {
-        return RESET;
-    } else {
-        return SET;
-    }
+        if (RESET == (DCI_INTF & int_flag)) {
+                return RESET;
+        } else {
+                return SET;
+        }
 }
 
 

@@ -61,6 +61,8 @@ include_directories(
         Hardware/key
         Hardware/data_show
         Hardware/protocol
+        Hardware/mpu6050
+        hardware/iic
         User
         )
 
@@ -83,6 +85,8 @@ file(GLOB_RECURSE SOURCES
         "Hardware/key/*.c"
         "Hardware/data_show/*.c"
         "Hardware/protocol/*.c"
+        "Hardware/mpu6050/*.c"
+        "hardware/iic/*.c"
         "User/*.*"
         )
 # 可修改结束

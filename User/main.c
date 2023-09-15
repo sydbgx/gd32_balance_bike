@@ -220,8 +220,6 @@ void tandem_pid_control_test()
                 data_show_push(&curr_encoder, 1);
                 delay_1ms(5);
         }
-
-
 }
 
 

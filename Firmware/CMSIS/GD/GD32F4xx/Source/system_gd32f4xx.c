@@ -114,7 +114,9 @@ static void system_clock_200m_8m_hxtal(void);
 uint32_t SystemCoreClock = __SYSTEM_CLOCK_200M_PLL_25M_HXTAL;
 static void system_clock_200m_25m_hxtal(void);
 #elif defined (__SYSTEM_CLOCK_240M_PLL_IRC16M)
+
 uint32_t SystemCoreClock = __SYSTEM_CLOCK_240M_PLL_IRC16M;
+
 static void system_clock_240m_irc16m(void);
 #elif defined (__SYSTEM_CLOCK_240M_PLL_8M_HXTAL)
 uint32_t SystemCoreClock = __SYSTEM_CLOCK_240M_PLL_8M_HXTAL;
@@ -917,7 +919,7 @@ static void system_clock_240m_irc16m(void)
         RCU_CFG0 |= RCU_APB1_CKAHB_DIV4;
         /* Configure the main PLL, PSC = 16, PLL_N = 480, PLL_P = 2, PLL_Q = 10 */
         RCU_PLL = (16U | (480U << 6U) | (((2U >> 1U) - 1U) << 16U) |
-                   (RCU_PLLSRC_IRC16M) | (10U << 24U));
+                (RCU_PLLSRC_IRC16M) | (10U << 24U));
         /* enable PLL */
         RCU_CTL |= RCU_CTL_PLLEN;
 
@@ -1093,17 +1095,17 @@ void SystemCoreClockUpdate(void)
         sws = GET_BITS(RCU_CFG0, 2, 3);
 
         switch (sws) {
-        /* IRC16M is selected as CK_SYS */
+                /* IRC16M is selected as CK_SYS */
         case SEL_IRC16M:
                 SystemCoreClock = IRC16M_VALUE;
                 break;
 
-        /* HXTAL is selected as CK_SYS */
+                /* HXTAL is selected as CK_SYS */
         case SEL_HXTAL:
                 SystemCoreClock = HXTAL_VALUE;
                 break;
 
-        /* PLLP is selected as CK_SYS */
+                /* PLLP is selected as CK_SYS */
         case SEL_PLLP:
                 /* get the value of PLLPSC[5:0] */
                 pllpsc = GET_BITS(RCU_PLL, 0U, 5U);
@@ -1122,7 +1124,7 @@ void SystemCoreClockUpdate(void)
                 SystemCoreClock = ((ck_src / pllpsc) * plln) / pllp;
                 break;
 
-        /* IRC16M is selected as CK_SYS */
+                /* IRC16M is selected as CK_SYS */
         default:
                 SystemCoreClock = IRC16M_VALUE;
                 break;
