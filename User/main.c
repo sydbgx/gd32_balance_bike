@@ -10,12 +10,14 @@
 #include "bsp_motor.h"
 #include "bsp_encoder.h"
 #include "bsp_key.h"
+#include "i2c.h"
+#include "inv_mpu.h"
 
 #include "data_show.h"
 
 extern float g_balanceKP, g_balanceKI, g_balanceKD, g_velocityKP, g_velocityKI, g_velocityKD;
 
-void test(int left, int right)
+void balance_test(int left, int right)
 {
         while (1) {
                 left = left > 9999 ? 9999 : (left < -9999 ? -9999 : left);
@@ -222,6 +224,19 @@ void tandem_pid_control_test()
         }
 }
 
+void mpu6050_test(void)
+{
+	uint8_t mpu_result = mpu_dmp_init();
+	float pitch;
+	float roll;
+	float yaw;
+	printf("mpu_result:%d\r\n", mpu_result);
+	while (1) {
+		mpu_dmp_get_data(&pitch, &roll, &yaw);
+		printf("pitch:%.2f roll:%.2f yaw:%.2f\r\n", pitch, roll, yaw);
+		delay_1ms(100);
+	}
+}
 
 int main(void)
 {
@@ -263,5 +278,7 @@ int main(void)
         //pid_control_test();
 
         //incremental_pid_control_test();
-        tandem_pid_control_test();
+        //tandem_pid_control_test();
+	mpu6050_test();
+	while(1) {}
 }
