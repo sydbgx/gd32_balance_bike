@@ -139,7 +139,8 @@ short bsp_encoder_get_left(void)
 {
 	// 使用short接受：电机正反转有正负，short范围是-32768~32767，可以接受负数，period是65535
 	short value = (short)timer_counter_read(PORT_TIMER_L);
-	return value;
+	timer_counter_value_config(PORT_TIMER_L, 0);
+	return -value;
 }
 
 /* 获取右边电机的转速 */
@@ -147,6 +148,7 @@ short bsp_encoder_get_right(void)
 {
 	// 使用short接受：电机正反转有正负，short范围是-32768~32767，可以接受负数，period是65535
 	short value = (short)timer_counter_read(PORT_TIMER_R);
+	timer_counter_value_config(PORT_TIMER_R, 0);
 	return value;
 }
 

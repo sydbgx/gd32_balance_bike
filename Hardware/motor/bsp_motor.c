@@ -111,11 +111,11 @@ void bsp_motor_set(int left, int right)
         right = right > 9999 ? 9999 : (right < -9999 ? -9999 : right);
 
 	if (left > 0) {
-		timer_channel_output_pulse_value_config(PORT_MOTOR_TIMER, TIMER_CH_0, left);
-		timer_channel_output_pulse_value_config(PORT_MOTOR_TIMER, TIMER_CH_1, 0);
-	} else {
 		timer_channel_output_pulse_value_config(PORT_MOTOR_TIMER, TIMER_CH_0, 0);
-		timer_channel_output_pulse_value_config(PORT_MOTOR_TIMER, TIMER_CH_1, -left);
+		timer_channel_output_pulse_value_config(PORT_MOTOR_TIMER, TIMER_CH_1, left);
+	} else {
+		timer_channel_output_pulse_value_config(PORT_MOTOR_TIMER, TIMER_CH_0, -left);
+		timer_channel_output_pulse_value_config(PORT_MOTOR_TIMER, TIMER_CH_1, 0);
 	}
 
 	if (left > 0) {
@@ -137,7 +137,6 @@ void bsp_motor_test(void)
 		duty += 500;
 		bsp_motor_set(duty, 0);
 		delay_1ms(500);
-
 		if (duty > 5000)
 			duty = -5000;
 	}

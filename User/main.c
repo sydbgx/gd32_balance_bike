@@ -17,13 +17,21 @@
 
 extern float g_balanceKP, g_balanceKI, g_balanceKD, g_velocityKP, g_velocityKI, g_velocityKD;
 
-void balance_test(int left, int right)
+void balance_bike_test(int left, int right)
 {
         while (1) {
-                left = left > 9999 ? 9999 : (left < -9999 ? -9999 : left);
+                /*left = left > 9999 ? 9999 : (left < -9999 ? -9999 : left);
                 right = right > 9999 ? 9999 : (right < -9999 ? -9999 : right);
                 printf("left:%d\n", left);
-                printf("right:%d\n", right);
+                printf("right:%d\n", right);*/
+
+		// 测试电机方向是否统一，如果不统一则需要调整电机方向并修改值为正数
+		bsp_motor_set(3000, 3000);
+		left = bsp_encoder_get_left();
+		right = bsp_encoder_get_right();
+		printf("left: %d right: %d\r\n", left, right);
+		delay_1ms(100);
+
         }
 }
 
@@ -238,6 +246,54 @@ void mpu6050_test(void)
 	}
 }
 
+void balance_test()
+{
+	uint8_t mpu_result = mpu_dmp_init();
+	float pitch;
+	float roll;
+	float yaw;
+	short gx, gy, gz;
+	// 小车平衡目标值
+	float median = 3;
+	float error_angle_integral = 0;
+	float error_angle_last = 0;
+	float error_speed_integral = 0;
+	float error_speed_last = 0;
+	while (1) {
+		float kp = g_balanceKP;
+		float ki = g_balanceKI;
+		float kd = g_balanceKD;
+
+		float sp = g_velocityKP;
+		float si = g_velocityKI;
+		float sd = g_velocityKD;
+
+		mpu_dmp_get_data(&pitch, &roll, &yaw);
+		MPU_Get_Gyroscope(&gx, &gy, &gz);
+		/* 直立环：控制角度 roll = 3 */
+		float error_angle = median - roll;
+		float balance_result = kp * error_angle + ki * error_angle_integral + kd * gx;
+		error_angle_integral += error_angle;
+
+		int left = bsp_encoder_get_left();
+		int right = bsp_encoder_get_right();
+		/* 速度环：控制速度，target = 0 */
+		float error_speed = 0 - (left - right);
+		int speed_result = sp * error_speed + ki * error_speed_integral + kd * (error_speed - error_speed_last);
+		error_speed_integral += error_speed;
+		error_speed_last = error_speed;
+
+		/* 积分限制幅度 */
+		error_speed_integral > 10000 ? error_speed_integral = 10000 : (error_speed_integral
+		        < -10000 ? error_speed_integral = -10000 : error_speed_integral);
+
+		/* 测试 */
+		int pwm = balance_result + speed_result;
+		bsp_motor_set(speed_result, speed_result);
+		delay_1ms(100);
+	}
+}
+
 int main(void)
 {
         nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
@@ -279,6 +335,9 @@ int main(void)
 
         //incremental_pid_control_test();
         //tandem_pid_control_test();
-	mpu6050_test();
-	while(1) {}
+	//mpu6050_test();
+	while(1) {
+
+		//balance_test();
+	}
 }
