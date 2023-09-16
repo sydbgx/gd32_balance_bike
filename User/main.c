@@ -248,7 +248,13 @@ void mpu6050_test(void)
 
 void balance_test()
 {
-	uint8_t mpu_result = mpu_dmp_init();
+	uint8_t mpu_result = 0;
+	/*while ((mpu_result = mpu_dmp_init()) != 0) {
+		printf("\n");
+		printf("mpu6050 init error: %d\r\n", mpu_result);
+	}*/
+	mpu_result = mpu_dmp_init();
+	printf("mpu_result:%d\r\n", mpu_result);
 	float pitch;
 	float roll;
 	float yaw;
@@ -260,16 +266,17 @@ void balance_test()
 	float error_speed_integral = 0;
 	float error_speed_last = 0;
 	while (1) {
-		float kp = g_balanceKP;
-		float ki = g_balanceKI;
-		float kd = g_balanceKD;
+		float kp = 0;
+		float ki = 0;
+		float kd = 10;
 
-		float sp = g_velocityKP;
-		float si = g_velocityKI;
-		float sd = g_velocityKD;
+		float sp = 0;
+		float si = 0;
+		float sd = 0;
 
-		mpu_dmp_get_data(&pitch, &roll, &yaw);
+		while (mpu_dmp_get_data(&pitch, &roll, &yaw) != 0) ;
 		MPU_Get_Gyroscope(&gx, &gy, &gz);
+		printf("roll=%.2f pitch=%.2f yaw=%.2f gx=%d gy=%d gz=%d\r\n", roll, pitch, yaw, gx, gy, gz);
 		/* 直立环：控制角度 roll = 3 */
 		float error_angle = median - roll;
 		float balance_result = kp * error_angle + ki * error_angle_integral + kd * gx;
@@ -278,21 +285,25 @@ void balance_test()
 		int left = bsp_encoder_get_left();
 		int right = bsp_encoder_get_right();
 		/* 速度环：控制速度，target = 0 */
-		float error_speed = 0 - (left - right);
-		int speed_result = sp * error_speed + ki * error_speed_integral + kd * (error_speed - error_speed_last);
+		float error_speed = 0 - (left + right);
+		int speed_result = sp * error_speed + si * error_speed_integral + sd * (error_speed - error_speed_last);
 		error_speed_integral += error_speed;
 		error_speed_last = error_speed;
 
 		/* 积分限制幅度 */
 		error_speed_integral > 10000 ? error_speed_integral = 10000 : (error_speed_integral
-		        < -10000 ? error_speed_integral = -10000 : error_speed_integral);
+			< -10000 ? error_speed_integral = -10000 : error_speed_integral);
 
 		/* 测试 */
 		int pwm = balance_result + speed_result;
-		bsp_motor_set(speed_result, speed_result);
-		delay_1ms(100);
+		printf("pwm: %d  left: %d  right: %d\r\n", pwm, left, right);
+		//printf("pwm: %d  \r\n", pwm);
+		bsp_motor_set(pwm, pwm);
+		delay_1ms(5);
 	}
 }
+
+
 
 int main(void)
 {
@@ -336,8 +347,8 @@ int main(void)
         //incremental_pid_control_test();
         //tandem_pid_control_test();
 	//mpu6050_test();
-	while(1) {
 
-		//balance_test();
+	balance_test();
+	while(1) {
 	}
 }
